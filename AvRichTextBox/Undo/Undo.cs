@@ -1,10 +1,17 @@
 ﻿namespace AvRichTextBox;
 
-public interface IUndo
+public abstract class Undo
 {
-   public void PerformUndo();
-   public int UndoEditOffset { get; }
-   public bool UpdateTextRanges { get; }
+   protected Undo(Undo? previous)
+   {
+      Previous = previous;
+   }
+
+   internal Undo? Previous { get; }
+
+   public abstract void PerformUndo();
+   public abstract int UndoEditOffset { get; }
+   public abstract bool UpdateTextRanges { get; }
 }
 
 internal class IEditablePropertyAssociation

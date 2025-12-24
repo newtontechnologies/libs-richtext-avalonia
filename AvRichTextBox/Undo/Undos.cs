@@ -6,12 +6,12 @@ using System.Linq;
 
 namespace AvRichTextBox;
 
-internal class InsertCharUndo (int insertParIndex, int insertInlineIdx, int insertPos, FlowDocument flowDoc, int origSelectionStart) : IUndo
+internal class InsertCharUndo (Undo? previous, int insertParIndex, int insertInlineIdx, int insertPos, FlowDocument flowDoc, int origSelectionStart) : Undo(previous)
 {
-   public int UndoEditOffset => -1;
-   public bool UpdateTextRanges => true;
+   public override int UndoEditOffset => -1;
+   public override bool UpdateTextRanges => true;
 
-   public void PerformUndo()
+   public override void PerformUndo()
    {
       try
       {
@@ -28,13 +28,13 @@ internal class InsertCharUndo (int insertParIndex, int insertInlineIdx, int inse
    }
 }
 
-internal class DeleteCharUndo(int deleteParIndex, int deleteInlineIdx, IEditable deletedRun, string deleteChar, int deletePos, FlowDocument flowDoc, int origSelectionStart) : IUndo
+internal class DeleteCharUndo(Undo? previous, int deleteParIndex, int deleteInlineIdx, IEditable deletedRun, string deleteChar, int deletePos, FlowDocument flowDoc, int origSelectionStart) : Undo(previous)
 {  
-   public int UndoEditOffset => 1;
-   public bool UpdateTextRanges => true;
+   public override int UndoEditOffset => 1;
+   public override bool UpdateTextRanges => true;
    internal int DeleteInlineIdx => deleteInlineIdx;
 
-   public void PerformUndo()
+   public override void PerformUndo()
    {
       try
       {
@@ -57,12 +57,12 @@ internal class DeleteCharUndo(int deleteParIndex, int deleteInlineIdx, IEditable
       
 }
 
-internal class DeleteImageUndo(int deleteParIndex, IEditable deletedIUC, int deletedInlineIdx, FlowDocument flowDoc, int origSelectionStart, bool emptyRunAdded) : IUndo
+internal class DeleteImageUndo(Undo? previous, int deleteParIndex, IEditable deletedIUC, int deletedInlineIdx, FlowDocument flowDoc, int origSelectionStart, bool emptyRunAdded) : Undo(previous)
 {
-   public int UndoEditOffset => 1;
-   public bool UpdateTextRanges => true;
+   public override int UndoEditOffset => 1;
+   public override bool UpdateTextRanges => true;
    
-   public void PerformUndo()
+   public override void PerformUndo()
    {
       try
       {
@@ -80,12 +80,12 @@ internal class DeleteImageUndo(int deleteParIndex, IEditable deletedIUC, int del
       
 }
 
-internal class PasteUndo(Dictionary<Block, List<IEditable>> keptParsAndInlines, int parIndex, FlowDocument flowDoc, int origSelectionStart, int undoEditOffset) : IUndo
+internal class PasteUndo(Undo? previous, Dictionary<Block, List<IEditable>> keptParsAndInlines, int parIndex, FlowDocument flowDoc, int origSelectionStart, int undoEditOffset) : Undo(previous)
 {
-   public int UndoEditOffset => undoEditOffset;
-   public bool UpdateTextRanges => true;
+   public override int UndoEditOffset => undoEditOffset;
+   public override bool UpdateTextRanges => true;
 
-   public void PerformUndo()
+   public override void PerformUndo()
    {
       try
       {
@@ -101,13 +101,13 @@ internal class PasteUndo(Dictionary<Block, List<IEditable>> keptParsAndInlines, 
    }
 }
 
-internal class DeleteRangeUndo (Dictionary<Block, List<IEditable>> keptParsAndInlines, int parIndex, FlowDocument flowDoc, int origSelectionStart, int undoEditOffset) : IUndo
+internal class DeleteRangeUndo (Undo? previous, Dictionary<Block, List<IEditable>> keptParsAndInlines, int parIndex, FlowDocument flowDoc, int origSelectionStart, int undoEditOffset) : Undo(previous)
 {  //parInlines are cloned inlines
 
-   public int UndoEditOffset => undoEditOffset;
-   public bool UpdateTextRanges => true;
+   public override int UndoEditOffset => undoEditOffset;
+   public override bool UpdateTextRanges => true;
 
-   public void PerformUndo()
+   public override void PerformUndo()
    {
       try
       {
@@ -126,12 +126,12 @@ internal class DeleteRangeUndo (Dictionary<Block, List<IEditable>> keptParsAndIn
 }
 
 
-internal class InsertParagraphUndo (FlowDocument flowDoc, int insertedParIndex, List<IEditable> keepParInlines, int origSelectionStart, int undoEditOffset) : IUndo
+internal class InsertParagraphUndo (Undo? previous, FlowDocument flowDoc, int insertedParIndex, List<IEditable> keepParInlines, int origSelectionStart, int undoEditOffset) : Undo(previous)
 {  
-   public int UndoEditOffset => undoEditOffset;
-   public bool UpdateTextRanges => true;
+   public override int UndoEditOffset => undoEditOffset;
+   public override bool UpdateTextRanges => true;
 
-   public void PerformUndo()
+   public override void PerformUndo()
    {
       try
       {
@@ -150,13 +150,13 @@ internal class InsertParagraphUndo (FlowDocument flowDoc, int insertedParIndex, 
 }
 
 
-internal class MergeParagraphUndo (int origMergedParInlinesCount, int mergedParIndex, Paragraph removedPar, FlowDocument flowDoc, int originalSelectionStart) : IUndo 
+internal class MergeParagraphUndo (Undo? previous, int origMergedParInlinesCount, int mergedParIndex, Paragraph removedPar, FlowDocument flowDoc, int originalSelectionStart) : Undo(previous) 
 { //removedPar is a clone
 
-   public int UndoEditOffset => 1;
-   public bool UpdateTextRanges => false;
+   public override int UndoEditOffset => 1;
+   public override bool UpdateTextRanges => false;
 
-   public void PerformUndo()
+   public override void PerformUndo()
    {
       try
       {
@@ -179,12 +179,12 @@ internal class MergeParagraphUndo (int origMergedParInlinesCount, int mergedParI
 }
 
 
-internal class ApplyFormattingUndo (FlowDocument flowDoc, List<IEditablePropertyAssociation> propertyAssociations, int originalSelection, TextRange tRange) : IUndo 
+internal class ApplyFormattingUndo (Undo? previous, FlowDocument flowDoc, List<IEditablePropertyAssociation> propertyAssociations, int originalSelection, TextRange tRange) : Undo(previous) 
 {
-   public int UndoEditOffset => 0;
-   public bool UpdateTextRanges => false;
+   public override int UndoEditOffset => 0;
+   public override bool UpdateTextRanges => false;
 
-   public void PerformUndo()
+   public override void PerformUndo()
    {
 
       foreach (IEditablePropertyAssociation propassoc in propertyAssociations)
@@ -201,12 +201,12 @@ internal class ApplyFormattingUndo (FlowDocument flowDoc, List<IEditableProperty
 }
 
 
-internal class InsertLineBreakUndo(int insertParIndex, int insertInlineIdx, FlowDocument flowDoc, int origSelectionStart) : IUndo
+internal class InsertLineBreakUndo(Undo? previous, int insertParIndex, int insertInlineIdx, FlowDocument flowDoc, int origSelectionStart) : Undo(previous)
 {
-   public int UndoEditOffset => -1;
-   public bool UpdateTextRanges => true;
+   public override int UndoEditOffset => -1;
+   public override bool UpdateTextRanges => true;
 
-   public void PerformUndo()
+   public override void PerformUndo()
    {
       try
       {

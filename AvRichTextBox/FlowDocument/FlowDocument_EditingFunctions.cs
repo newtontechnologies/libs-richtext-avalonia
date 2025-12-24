@@ -40,7 +40,7 @@ public partial class FlowDocument
       int deleteRangeLength = tRange.Length;
       int parIndex = Blocks.IndexOf(startPar);
 
-      Undos.Add(new PasteUndo(KeepParsAndInlines(tRange), parIndex, this, rangeStart, deleteRangeLength - newInlines.Sum(nil=>nil.InlineLength)));
+      Undos.Add(new PasteUndo(Undos.Head, KeepParsAndInlines(tRange), parIndex, this, rangeStart, deleteRangeLength - newInlines.Sum(nil=>nil.InlineLength)));
 
       //Delete selected range first
       if (tRange.Length > 0)
@@ -107,7 +107,7 @@ public partial class FlowDocument
       int deleteRangeLength = tRange.Length;
       int parIndex = Blocks.IndexOf(startPar);
 
-      Undos.Add(new PasteUndo(KeepParsAndInlines(tRange), parIndex, this, rangeStart, deleteRangeLength - newText.Length));
+      Undos.Add(new PasteUndo(Undos.Head, KeepParsAndInlines(tRange), parIndex, this, rangeStart, deleteRangeLength - newText.Length));
 
       //Delete any selected text first
       if (tRange.Length > 0)
@@ -148,12 +148,13 @@ public partial class FlowDocument
    {
       if (Undos.Count > 0)
       {
-         Undos.Last().PerformUndo();
+         Undo undo = Undos.Last();
+         undo.PerformUndo();
 
          UpdateSelection();
 
-         if (Undos.Last().UpdateTextRanges)
-            UpdateTextRanges(Selection.Start, Undos.Last().UndoEditOffset);
+         if (undo.UpdateTextRanges)
+            UpdateTextRanges(Selection.Start, undo.UndoEditOffset);
 
          Undos.RemoveAt(Undos.Count - 1);
 

@@ -4,56 +4,60 @@ using Xunit;
 
 namespace AvRichTextBox.Tests;
 
-public class UndoChainTests
+public class UndoStackTests
 {
-   private sealed class NoopUndo : IUndo
+   private sealed class NoopUndo : Undo
    {
-      public int UndoEditOffset => 0;
-      public bool UpdateTextRanges => false;
-      public void PerformUndo() { }
+      internal NoopUndo(Undo? previous) : base(previous) { }
+      public override int UndoEditOffset => 0;
+      public override bool UpdateTextRanges => false;
+      public override void PerformUndo() { }
    }
 
    [Fact]
-   public void Add_builds_linear_chain_with_unique_predecessor()
+   public void Add_requires_previous_to_be_current_head()
    {
-      var chain = new UndoChain();
+      var stack = new UndoStack();
 
-      chain.Add(new NoopUndo());
-      var first = chain.HeadNode!;
+      var first = new NoopUndo(null);
+      stack.Add(first);
 
-      chain.Add(new NoopUndo());
-      var second = chain.HeadNode!;
+      var invalid = new NoopUndo(null);
+      Assert.Throws<InvalidOperationException>(() => stack.Add(invalid));
 
-      Assert.Equal(2, chain.Count);
+      var second = new NoopUndo(stack.Last());
+      stack.Add(second);
+
+      Assert.Equal(2, stack.Count);
       Assert.Same(first, second.Previous);
-      Assert.Single(first.Next);
-      Assert.Same(second, first.Next[0]);
    }
 
    [Fact]
    public void RemoveAt_only_allows_removing_most_recent_entry()
    {
-      var chain = new UndoChain();
-      chain.Add(new NoopUndo());
-      chain.Add(new NoopUndo());
+      var stack = new UndoStack();
+      var first = new NoopUndo(null);
+      stack.Add(first);
+      stack.Add(new NoopUndo(stack.Last()));
 
-      Assert.Throws<NotSupportedException>(() => chain.RemoveAt(0));
+      Assert.Throws<NotSupportedException>(() => stack.RemoveAt(0));
 
-      chain.RemoveAt(chain.Count - 1);
-      Assert.Equal(1, chain.Count);
+      stack.RemoveAt(stack.Count - 1);
+      Assert.Equal(1, stack.Count);
+      Assert.Same(first, stack.Last());
    }
 
    [Fact]
    public void Last_returns_most_recent_entry()
    {
-      var chain = new UndoChain();
-      var u1 = new NoopUndo();
-      var u2 = new NoopUndo();
+      var stack = new UndoStack();
+      var u1 = new NoopUndo(null);
+      stack.Add(u1);
 
-      chain.Add(u1);
-      chain.Add(u2);
+      var u2 = new NoopUndo(stack.Last());
+      stack.Add(u2);
 
-      Assert.Same(u2, chain.Last());
+      Assert.Same(u2, stack.Last());
    }
 }
 

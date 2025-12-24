@@ -44,7 +44,7 @@ public partial class FlowDocument
             startInline.InlineText = startInline.InlineText.Insert(insertIdx, insertText);
          }
 
-         Undos.Add(new InsertCharUndo(Blocks.IndexOf(Selection.StartParagraph), Selection.StartParagraph.Inlines.IndexOf(startInline!), insertIdx, this, Selection.Start));
+         Undos.Add(new InsertCharUndo(Undos.Head, Blocks.IndexOf(Selection.StartParagraph), Selection.StartParagraph.Inlines.IndexOf(startInline!), insertIdx, this, Selection.Start));
          UpdateTextRanges(Selection.Start, insertText.Length);
 
 
@@ -93,7 +93,7 @@ public partial class FlowDocument
                emptyRunAdded = true;
             }
                
-            Undos.Add(new DeleteImageUndo(Blocks.IndexOf(startP), eIUC, startInlineIdx, this, originalSelectionStart, emptyRunAdded));
+            Undos.Add(new DeleteImageUndo(Undos.Head, Blocks.IndexOf(startP), eIUC, startInlineIdx, this, originalSelectionStart, emptyRunAdded));
 
             startP.Inlines.Remove(eIUC);
          }
@@ -131,7 +131,7 @@ public partial class FlowDocument
                   startP.Inlines.Add(new EditableRun(""));
             }
 
-            Undos.Add(new DeleteCharUndo(Blocks.IndexOf(startP), startInlineIdx, keepInline, deletedChar, selectionStartInInline, this, originalSelectionStart));
+            Undos.Add(new DeleteCharUndo(Undos.Head, Blocks.IndexOf(startP), startInlineIdx, keepInline, deletedChar, selectionStartInInline, this, originalSelectionStart));
 
          }
 
@@ -159,7 +159,7 @@ public partial class FlowDocument
       startPar.Inlines.Insert(runIdx + 1, new EditableLineBreak());
 
 
-      Undos.Add(new InsertLineBreakUndo(Blocks.IndexOf(Selection.StartParagraph), runIdx + 1, this, Selection.Start));
+      Undos.Add(new InsertLineBreakUndo(Undos.Head, Blocks.IndexOf(Selection.StartParagraph), runIdx + 1, this, Selection.Start));
       UpdateTextRanges(Selection.Start, 1); 
      
       
@@ -199,7 +199,7 @@ public partial class FlowDocument
       Dictionary<Block, List<IEditable>> keepParsAndInlines = KeepParsAndInlines(trange);
       List<Block> allBlocks = keepParsAndInlines.ToList().ConvertAll(keepP => keepP.Key);
       if (saveUndo) 
-         Undos.Add(new DeleteRangeUndo(keepParsAndInlines, Blocks.IndexOf(allBlocks[0]), this, originalSelectionStart, originalTRangeLength));
+         Undos.Add(new DeleteRangeUndo(Undos.Head, keepParsAndInlines, Blocks.IndexOf(allBlocks[0]), this, originalSelectionStart, originalTRangeLength));
 
       List<IEditable> rangeInlines = CreateNewInlinesForRange(trange);
 
@@ -325,7 +325,7 @@ public partial class FlowDocument
 
       if (addUndo)
          //Undos.Add(new InsertParagraphUndo(this, insertCharIndex, originalSelStart, selectionLength - 1));
-         Undos.Add(new InsertParagraphUndo(this, parIndex, keepParInlines, originalSelStart, selectionLength - 1));
+         Undos.Add(new InsertParagraphUndo(Undos.Head, this, parIndex, keepParInlines, originalSelStart, selectionLength - 1));
 
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
@@ -353,7 +353,7 @@ public partial class FlowDocument
       bool IsThisParagraphEmpty = thisPar.Inlines.Count == 1 && thisPar.Inlines[0].IsEmpty;
 
       if (saveUndo)
-         Undos.Add(new MergeParagraphUndo(origParInlinesCount, thisParIndex, nextPar.FullClone(), this, originalSelectionStart));
+         Undos.Add(new MergeParagraphUndo(Undos.Head, origParInlinesCount, thisParIndex, nextPar.FullClone(), this, originalSelectionStart));
 
       if (IsThisParagraphEmpty)
          thisPar.Inlines.Clear();
