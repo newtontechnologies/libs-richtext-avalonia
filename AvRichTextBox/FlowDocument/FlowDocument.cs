@@ -36,7 +36,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
 
    readonly SolidColorBrush caretBrush = new(Colors.Cyan, 0.55);
 
-   internal ObservableCollection<IUndo> Undos { get; set; } = [];
+   internal UndoChain Undos { get; } = new();
 
    internal List<TextRange> TextRanges = [];
 
