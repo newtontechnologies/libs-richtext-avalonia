@@ -147,6 +147,43 @@ public class UndoRedoRoundTripTests
       doc.Redo();
       Assert.Equal(s1, doc.SerializeForTests());
    }
+
+   [Fact]
+   public async Task Backspace_at_start_of_second_paragraph_deletes_paragraph_break_and_merges()
+   {
+      var doc = new AvRichTextBox.FlowDocument();
+      await StabilizeAsync();
+
+      // Create two paragraphs: "a" + paragraph break + "b"
+      doc.Select(0, 0);
+      doc.ExecuteEdit(doc.BuildReplaceRangeAction(0, 0, [new EditableRun("a\r"), new EditableRun("b")]));
+
+      // Start of second paragraph is index 2: [ 'a'(0) ][ '\\r'(1) ][ 'b'(2) ]
+      doc.Select(2, 0);
+      doc.DeleteChar(backspace: true);
+
+      var s = doc.SerializeForTests();
+      Assert.Contains("Blocks=1", s);
+      Assert.StartsWith("ab\r", doc.Text);
+   }
+
+   [Fact]
+   public async Task Delete_at_end_of_first_paragraph_deletes_paragraph_break_and_merges()
+   {
+      var doc = new AvRichTextBox.FlowDocument();
+      await StabilizeAsync();
+
+      doc.Select(0, 0);
+      doc.ExecuteEdit(doc.BuildReplaceRangeAction(0, 0, [new EditableRun("a\r"), new EditableRun("b")]));
+
+      // End of first paragraph text is index 1 (paragraph break position).
+      doc.Select(1, 0);
+      doc.DeleteChar(backspace: false);
+
+      var s = doc.SerializeForTests();
+      Assert.Contains("Blocks=1", s);
+      Assert.StartsWith("ab\r", doc.Text);
+   }
 }
 
 

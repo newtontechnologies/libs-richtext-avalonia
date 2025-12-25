@@ -47,7 +47,11 @@ public partial class FlowDocument
          edits.Add(new ShiftTextRangesEdit(this, start, delta));
 
       // Selection after: caret at start + insertedLen
-      int caret = Math.Min(start + insertedDocLen, DocEndPoint - 1);
+      // IMPORTANT: clamp against the *post-edit* document length, not the current one.
+      // Otherwise, inserts that grow the doc (e.g. paragraph break as +1) can incorrectly clamp caret to 0..0.
+      int oldDocEndMinus1 = Math.Max(0, DocEndPoint - 1);
+      int newDocEndMinus1 = Math.Max(0, oldDocEndMinus1 + delta);
+      int caret = Math.Clamp(start + insertedDocLen, 0, newDocEndMinus1);
       var selectionAfter = new SelectionState(caret, caret, ExtendMode.ExtendModeNone, BiasForwardStart: false, BiasForwardEnd: false);
 
       int refreshFromIndex = Blocks.IndexOf(startPar);
@@ -72,7 +76,17 @@ public partial class FlowDocument
       var first = (Paragraph)Blocks.First(b => b.IsParagraph);
       if (docIndex <= first.StartInDoc) return first;
 
-      return (Paragraph)Blocks.Last(b => b.IsParagraph && b.StartInDoc < docIndex);
+      var p = (Paragraph)Blocks.Last(b => b.IsParagraph && b.StartInDoc < docIndex);
+
+      // If end is exactly at a paragraph boundary (EndInDoc) and there is a next paragraph,
+      // treat the end as belonging to the next paragraph so a 1-length range can delete the boundary and merge.
+      if (p != Blocks.OfType<Paragraph>().Last() && p.EndInDoc == docIndex)
+      {
+         int pIndex = Blocks.IndexOf(p);
+         return (Paragraph)Blocks[pIndex + 1];
+      }
+
+      return p;
    }
 
    private static void BuildDeleteWithinParagraph(List<IAtomicEdit> edits, List<Paragraph> refreshPars, Paragraph p, int startLocal, int endLocal)
