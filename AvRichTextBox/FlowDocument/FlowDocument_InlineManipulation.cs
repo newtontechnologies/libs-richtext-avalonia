@@ -12,7 +12,7 @@ public partial class FlowDocument
    {
       Paragraph? startPar = trange.GetStartPar();
       Paragraph? endPar = trange.GetEndPar();
-      if (startPar == null | endPar == null) return [];
+      if (startPar == null || endPar == null) return [];
 
       //Create clones of all inlines
       List<IEditable> allSelectedInlines = Blocks.Where(b => b.IsParagraph).SelectMany( b =>
@@ -61,7 +61,7 @@ public partial class FlowDocument
    {
       Paragraph? startPar = trange.GetStartPar();
       Paragraph? endPar = trange.GetEndPar();
-      if (startPar == null | endPar == null) return [];
+      if (startPar == null || endPar == null) return [];
 
       List<IEditable> allSelectedInlines = Blocks.Where(b => b.IsParagraph).SelectMany(b =>
          ((Paragraph)b).Inlines.Where(iline => b.StartInDoc + iline.TextPositionOfInlineInParagraph + iline.InlineLength > trange.Start &&
