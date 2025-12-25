@@ -28,7 +28,12 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
 
    internal bool IsEditable { get; set; } = true;
 
-   internal UndoStack Undos { get; } = new();
+   internal EditActionStack UndoStack { get; } = new();
+   internal EditActionStack RedoStack { get; } = new();
+   internal bool CanUndo => UndoStack.Any;
+   internal bool CanRedo => RedoStack.Any;
+   internal int UndoCount => UndoStack.Count;
+   internal int RedoCount => RedoStack.Count;
 
    internal List<TextRange> TextRanges = [];
 
@@ -124,7 +129,8 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
 
       this.PagePadding = new Thickness(0);
 
-      Undos.Clear();
+      UndoStack.Clear();
+      RedoStack.Clear();
 
    }
 
@@ -192,6 +198,9 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       Selection.StartParagraph.CallRequestTextLayoutInfoStart();
       SelectionChanged?.Invoke(Selection);
 
+      if (!_isTypingEdit)
+         _canCoalesceTyping = false;
+
    }
 
    internal void SelectionEnd_Changed(TextRange selRange, int newEnd)
@@ -219,6 +228,9 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       Selection.GetEndInline();
       Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
       SelectionChanged?.Invoke(Selection);
+
+      if (!_isTypingEdit)
+         _canCoalesceTyping = false;
 
    }
 

@@ -10,137 +10,153 @@ public partial class FlowDocument
 {
    internal void InsertText(string? insertText)
    {
-      if (Selection.GetStartInline() is not IEditable startInline || startInline.GetType() == typeof(EditableInlineUiContainer)) return;
+      if (string.IsNullOrEmpty(insertText)) return;
 
-      if (insertText != null)
+      // Do not type into UI containers.
+      if (Selection.GetStartInline() is EditableInlineUiContainer) return;
+
+      // Coalesce simple typing (single char, collapsed selection, no caret movement)
+      bool isSingleChar = insertText.Length == 1 && insertText[0] != '\r' && insertText[0] != '\n';
+      if (isSingleChar && Selection.Length == 0)
       {
-         if (Selection!.Length > 0)
-         {
-            DeleteRange(Selection, true);
-            Selection.CollapseToStart();
-            SelectionExtendMode = ExtendMode.ExtendModeNone;
-            startInline = Selection.GetStartInline();
-         }
+         int caret = Selection.Start;
 
-         int insertIdx = 0;
-         if (_insertRunMode)
+         if (_canCoalesceTyping && _typing != null && caret == _typing.Paragraph.StartInDoc + _typing.Run.TextPositionOfInlineInParagraph + _typing.RunInsertOffsetEnd)
          {
-            List<IEditable> applyInlines = CreateNewInlinesForRange(Selection);
-            if (applyInlines.Count == 0)
+            _isTypingEdit = true;
+            try
             {
-               applyInlines.Add(new EditableRun(""));
-               Selection.StartParagraph.Inlines.Insert(0, applyInlines[0]);
+               // Apply incremental change in-place (no intermediate undo/redo), then replace top undo action with merged immutable one.
+               _typing.Run.InlineText = _typing.Run.InlineText.Insert(_typing.RunInsertOffsetEnd, insertText);
+               _typing.RunInsertOffsetEnd += 1;
+
+               // Keep TextRanges consistent: shift at the insertion point.
+               UpdateTextRanges(caret, 1);
+               _typing.ShiftPoints.Add(caret);
+
+               // Update selection/caret and refresh.
+               SelectionParagraphs.Clear();
+               Selection.Start = caret + 1;
+               Selection.End = caret + 1;
+               SelectionStart_Changed(Selection, Selection.Start);
+               SelectionEnd_Changed(Selection, Selection.End);
+               EnsureSelectionContinuity();
+
+               // Replace last action in undo stack with merged action; clear redo.
+            RedoStack.Clear();
+            UndoStack.Pop();
+            UndoStack.Push(BuildMergedTypingAction(_typing));
+
+               RefreshAfterAtomicEdits(_typing.RefreshFromBlockIndex, [_typing.Paragraph]);
+               _canCoalesceTyping = true;
+               return;
             }
-            startInline = applyInlines[0];
-            startInline.InlineText = insertText;
-            _toggleFormatRun!(startInline);
-            _insertRunMode = false;
-         }
-         else
-         {  //Debug.WriteLine("starinlinetext = " + startInline.InlineText);
-            insertIdx = startInline.GetCharPosInInline(Selection.Start); 
-            startInline.InlineText = startInline.InlineText.Insert(insertIdx, insertText);
+            finally
+            {
+               _isTypingEdit = false;
+            }
          }
 
-         Undos.Add(new InsertCharUndo(Undos.Head, Blocks.IndexOf(Selection.StartParagraph), Selection.StartParagraph.Inlines.IndexOf(startInline!), insertIdx, this, Selection.Start));
-         UpdateTextRanges(Selection.Start, insertText.Length);
-
-
-         Selection.StartParagraph.CallRequestInlinesUpdate();
-         UpdateBlockAndInlineStarts(Selection.StartParagraph);
-
-         for (int i = 0; i < insertText.Length; i++) 
-            MoveSelectionRight(true);
-
-         IEditable nextInline = GetNextInline(Selection.GetStartInline())!;
-         Selection.IsAtLineBreak = nextInline != null && nextInline.IsLineBreak;
-
+         // Start a new typing coalescing sequence (must be based on stable references from current state).
+         var typingAction = BuildTypingInsertAction(caret, insertText);
+         _isTypingEdit = true;
+         try
+         {
+            RedoStack.Clear();
+            RedoStack.Push(typingAction);
+            Redo();
+            _canCoalesceTyping = true;
+            return;
+         }
+         finally
+         {
+            _isTypingEdit = false;
+         }
       }
 
+      ExecuteEdit(BuildReplaceRangeAction(Selection.Start, Selection.End, [new EditableRun(insertText)]));
+
+   }
+
+   private CompositeEditAction BuildTypingInsertAction(int caret, string text)
+   {
+      var selectionBefore = CaptureSelectionState();
+
+      var p = ResolveStartParagraph(caret);
+      p.UpdateEditableRunPositions();
+
+      int local = Math.Min(caret - p.StartInDoc, p.Text.Length);
+      EditableRun run = p.Inlines.OfType<EditableRun>().LastOrDefault(r => r.TextPositionOfInlineInParagraph <= local) ?? new EditableRun("");
+      int runIndex = p.Inlines.IndexOf(run);
+
+      var edits = new List<IAtomicEdit>(4);
+      if (runIndex < 0)
+      {
+         // Insert the new run at start if none found.
+         edits.Add(new InsertInlineEdit(p, 0, run));
+         runIndex = 0;
+      }
+
+      int off = Math.Clamp(local - run.TextPositionOfInlineInParagraph, 0, run.InlineText.Length);
+      string oldText = run.InlineText;
+      string newText = oldText.Insert(off, text);
+
+      edits.Add(new SetRunTextEdit(run, oldText, newText));
+      edits.Add(new ShiftTextRangesEdit(this, caret, 1));
+
+      int refreshFrom = Blocks.IndexOf(p);
+
+      var selectionAfter = new SelectionState(caret + 1, caret + 1, ExtendMode.ExtendModeNone, BiasForwardStart: false, BiasForwardEnd: false);
+      _typing = new TypingCoalesceState
+      {
+         Paragraph = p,
+         Run = run,
+         RunInsertOffsetStart = off,
+         RunInsertOffsetEnd = off + 1,
+         OldRunText = oldText,
+         SelectionBefore = selectionBefore,
+         RefreshFromBlockIndex = refreshFrom,
+         ShiftPoints = [caret]
+      };
+
+      return new CompositeEditAction(edits, selectionBefore, selectionAfter, refreshFrom, [p]);
+   }
+
+   private CompositeEditAction BuildMergedTypingAction(TypingCoalesceState state)
+   {
+      // Build a merged action representing all typed chars as one undo entry.
+      var edits = new List<IAtomicEdit>(1 + state.ShiftPoints.Count);
+
+      string newText = state.Run.InlineText;
+      edits.Add(new SetRunTextEdit(state.Run, state.OldRunText, newText));
+
+      foreach (int pt in state.ShiftPoints)
+         edits.Add(new ShiftTextRangesEdit(this, pt, 1));
+
+      int caretAfter = state.ShiftPoints[^1] + 1;
+      var selectionAfter = new SelectionState(caretAfter, caretAfter, ExtendMode.ExtendModeNone, BiasForwardStart: false, BiasForwardEnd: false);
+
+      return new CompositeEditAction(edits, state.SelectionBefore, selectionAfter, state.RefreshFromBlockIndex, [state.Paragraph]);
    }
 
    internal void DeleteChar(bool backspace)
    {
-      int originalSelectionStart = Selection.Start;
-
-      if (backspace)
-         MoveSelectionLeft(true);
-
-      Selection!.BiasForwardStart = true;
-      Selection!.BiasForwardEnd = true;
-
-      IEditable startInline = Selection.GetStartInline();
-      if (startInline == null) return;
-
-      Paragraph startP = (Paragraph)Selection.StartParagraph;
-
-      if (startP.SelectionStartInBlock == startP.Text.Length)
-         MergeParagraphForward(Selection.Start, true, originalSelectionStart);
-      else
-      {  //Delete one unit
-         int startInlineIdx = startP.Inlines.IndexOf(startInline);
-         string deletedChar = "";
-         int selectionStartInInline = 0;
-
-         if (startInline is EditableInlineUiContainer eIuc)
-         {
-            bool emptyRunAdded = false;
-            if (startP.Inlines.Count == 1)
-            {
-               startP.Inlines.Add(new EditableRun(""));
-               emptyRunAdded = true;
-            }
-               
-            Undos.Add(new DeleteImageUndo(Undos.Head, Blocks.IndexOf(startP), eIuc, startInlineIdx, this, originalSelectionStart, emptyRunAdded));
-
-            startP.Inlines.Remove(eIuc);
-         }
-         else
-         {
-            IEditable? nextInline = GetNextInline(startInline);
-            bool isSelectionAtInlineEnd = startInline.GetCharPosInInline(Selection.End) == startInline.InlineLength;
-            IEditable keepInline = null!;
-
-            if (nextInline != null && nextInline.IsLineBreak && isSelectionAtInlineEnd)
-            {  //Delete linebreak
-               IEditable? lbnext = GetNextInline(nextInline);
-               startP.Inlines.Remove(nextInline);
-               if (lbnext != null && lbnext.IsEmpty)
-                  startP.Inlines.Remove(lbnext);
-               else if (startInline.IsEmpty)
-                  startP.Inlines.Remove(startInline);
-            }
-            else
-            {  // delete normal run char
-               if (startInline.InlineLength == 1)
-               {
-                  keepInline = startInline;
-                  startP.Inlines.Remove(startInline);
-               }
-               else
-               {
-                  selectionStartInInline = startInline.GetCharPosInInline(Selection.Start);
-                  deletedChar = startInline.InlineText.Substring(selectionStartInInline, 1);
-                  startInline.InlineText = startInline.InlineText.Remove(selectionStartInInline, 1);
-               }
-               
-               //Paragraph must always have at least an empty run
-               if (startP.Inlines.Count == 0)
-                  startP.Inlines.Add(new EditableRun(""));
-            }
-
-            Undos.Add(new DeleteCharUndo(Undos.Head, Blocks.IndexOf(startP), startInlineIdx, keepInline, deletedChar, selectionStartInInline, this, originalSelectionStart));
-
-         }
-
-         UpdateTextRanges(Selection.Start, -1);
-
-         UpdateBlockAndInlineStarts(Blocks.IndexOf(startP));
+      if (Selection.Length > 0)
+      {
+         DeleteSelection();
+         return;
       }
 
-      SelectionStart_Changed(Selection, Selection.Start);
-      Selection.StartParagraph.CallRequestInlinesUpdate();
-      Selection.StartParagraph.CallRequestTextLayoutInfoStart();
+      if (backspace)
+      {
+         if (Selection.Start <= 0) return;
+         ExecuteEdit(BuildReplaceRangeAction(Selection.Start - 1, Selection.Start, []));
+      }
+      else
+      {
+         if (Selection.Start >= DocEndPoint - 1) return;
+         ExecuteEdit(BuildReplaceRangeAction(Selection.Start, Selection.Start + 1, []));
+      }
 
 
 
@@ -148,56 +164,24 @@ public partial class FlowDocument
 
    internal void InsertLineBreak()
    {
-      Paragraph startPar = Selection.StartParagraph;
-      if (Selection.GetStartInline() is not IEditable startInline) { Debug.WriteLine("skipping"); return; }
-
-      int runIdx = startPar.Inlines.IndexOf(startInline);
-
-      SplitRunAtPos(Selection.Start, startInline, startInline.GetCharPosInInline(Selection.Start)); // creates an empty inline
-      startPar.Inlines.Insert(runIdx + 1, new EditableLineBreak());
-
-
-      Undos.Add(new InsertLineBreakUndo(Undos.Head, Blocks.IndexOf(Selection.StartParagraph), runIdx + 1, this, Selection.Start));
-      UpdateTextRanges(Selection.Start, 1); 
-     
-      
-      SelectionExtendMode = ExtendMode.ExtendModeNone;
-
-      startPar.UpdateEditableRunPositions();
-      startPar.CallRequestInlinesUpdate();
-      startPar.CallRequestTextLayoutInfoStart();
-      startPar.CallRequestTextLayoutInfoEnd();
-
-      Select(Selection.Start + 2, 0);
-      Selection.BiasForwardStart = true;
-      Selection.BiasForwardEnd = true;
-
-      ScrollInDirection!(1);
+      ExecuteEdit(BuildReplaceRangeAction(Selection.Start, Selection.End, [new EditableLineBreak()]));
 
    }
 
 
    internal void DeleteSelection()
    {
-      DeleteRange(Selection, true);
-      SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeNone;
-      UpdateBlockAndInlineStarts(Selection.StartParagraph);
-      Selection.CollapseToStart();
-      Selection.BiasForwardStart = false;  
-      Selection.BiasForwardEnd = false;  
+      ExecuteEdit(BuildReplaceRangeAction(Selection.Start, Selection.End, []));
 
    }
 
    internal void DeleteRange(TextRange trange, bool saveUndo)
    {
-  
-      int originalSelectionStart = Selection.Start;
+      int originalSelectionStart = trange.Start;
       int originalTRangeLength = trange.Length;
 
       Dictionary<Block, List<IEditable>> keepParsAndInlines = KeepParsAndInlines(trange);
       List<Block> allBlocks = keepParsAndInlines.ToList().ConvertAll(keepP => keepP.Key);
-      if (saveUndo) 
-         Undos.Add(new DeleteRangeUndo(Undos.Head, keepParsAndInlines, Blocks.IndexOf(allBlocks[0]), this, originalSelectionStart, originalTRangeLength));
 
       List<IEditable> rangeInlines = CreateNewInlinesForRange(trange);
 
@@ -267,15 +251,13 @@ public partial class FlowDocument
       int parIndex = Blocks.IndexOf(insertPar);
       int selectionLength = 0;
 
-      if (addUndo)
+      // This method is now used as a core operation by EditActions; it should not record undo/redo itself.
+      selectionLength = Selection.Length;
+      if (Selection.Length > 0)
       {
-         selectionLength = Selection.Length;
-         if (Selection.Length > 0)
-         {
-            DeleteRange(Selection, false);
-            Selection.CollapseToStart();
-            SelectionExtendMode = ExtendMode.ExtendModeNone;
-         }
+         DeleteRange(Selection, false);
+         Selection.CollapseToStart();
+         SelectionExtendMode = ExtendMode.ExtendModeNone;
       }
 
       IEditable startInline = GetStartInline(insertCharIndex);
@@ -321,9 +303,7 @@ public partial class FlowDocument
       parToInsert.CallRequestInlinesUpdate();
 
 
-      if (addUndo)
-         //Undos.Add(new InsertParagraphUndo(this, insertCharIndex, originalSelStart, selectionLength - 1));
-         Undos.Add(new InsertParagraphUndo(Undos.Head, this, parIndex, keepParInlines, originalSelStart, selectionLength - 1));
+      // Undo/Redo is handled by EditActions.
 
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
@@ -335,7 +315,7 @@ public partial class FlowDocument
       originalPar.CallRequestTextLayoutInfoEnd();
       parToInsert.CallRequestTextLayoutInfoEnd();
 
-      ScrollInDirection!(1);
+      ScrollInDirection?.Invoke(1);
 
    }
 
@@ -350,8 +330,7 @@ public partial class FlowDocument
       bool isNextParagraphEmpty = nextPar.Inlines.Count == 1 && nextPar.Inlines[0].IsEmpty;
       bool isThisParagraphEmpty = thisPar.Inlines.Count == 1 && thisPar.Inlines[0].IsEmpty;
 
-      if (saveUndo)
-         Undos.Add(new MergeParagraphUndo(Undos.Head, origParInlinesCount, thisParIndex, nextPar.FullClone(), this, originalSelectionStart));
+      // Undo/Redo is handled by EditActions.
 
       if (isThisParagraphEmpty)
          thisPar.Inlines.Clear();
@@ -397,53 +376,44 @@ public partial class FlowDocument
 
    internal void DeleteWord(bool backspace)
    {
+      int caret = Selection.Start;
+
       if (backspace)
-         if (Selection.Start <= 0) return;
-      else
-         if (Selection.Start >= Selection.StartParagraph.StartInDoc + Selection.StartParagraph.BlockLength)
-            return;
-
-      
-      int originalSelectionStart = Selection.Start;
-      
-      if (backspace)
-         MoveLeftWord();
-      
-      Selection!.BiasForwardStart = true;
-      Selection!.BiasForwardEnd = true;
-
-      Paragraph startP = Selection.StartParagraph;
-
-      if (startP.SelectionStartInBlock == startP.Text.Length)
-         MergeParagraphForward(Selection.Start, true, originalSelectionStart); //updates text ranges and adds undo
-      else
       {
-         int nextWordEndPoint = -1;
-         IEditable startInline = Selection.GetStartInline();
-         if (startInline.IsUiContainer || startInline.IsLineBreak)
-            nextWordEndPoint = Selection.Start + 1;
-         else
-         {
-            int indexNextSpace = Selection.StartParagraph.Text.IndexOf(' ', Selection.Start - Selection.StartParagraph.StartInDoc);
-            if (indexNextSpace == -1)
-               indexNextSpace = Selection.StartParagraph.Text.Length;
-            else
-               indexNextSpace += 1;
-            nextWordEndPoint = Selection.StartParagraph.StartInDoc + indexNextSpace;
-         }
+         if (caret <= 0) return;
 
-         //if (startP.Inlines.Count > 1)
-         //   startP.RemoveEmptyInlines();
-         
-         TextRange deleteTextRange = new (this, Selection.Start, nextWordEndPoint);
-         DeleteRange(deleteTextRange, true);  // updates all text ranges and adds undo
-                           
-         UpdateBlockAndInlineStarts(Blocks.IndexOf(startP));
+         var p = Selection.StartParagraph;
+         int localCaret = caret - p.StartInDoc;
+         localCaret = Math.Max(0, localCaret - 1);
+         int ws = p.Text.LastIndexOfAny(" \v".ToCharArray(), localCaret);
+         int start = p.StartInDoc + (ws < 0 ? 0 : ws + 1);
+
+         ExecuteEdit(BuildReplaceRangeAction(start, caret, []));
+         return;
       }
 
-      SelectionStart_Changed(Selection, Selection.Start);
-      Selection.StartParagraph.CallRequestInlinesUpdate();
-      Selection.StartParagraph.CallRequestTextLayoutInfoStart();
+      if (caret >= DocEndPoint - 1) return;
+
+      var par = Selection.StartParagraph;
+      int local = caret - par.StartInDoc;
+
+      // Delete paragraph boundary (merge forward) if caret is at paragraph end.
+      if (local >= par.Text.Length)
+      {
+         ExecuteEdit(BuildReplaceRangeAction(caret, caret + 1, []));
+         return;
+      }
+
+      IEditable startInline = Selection.GetStartInline();
+      if (startInline.IsUiContainer || startInline.IsLineBreak)
+      {
+         ExecuteEdit(BuildReplaceRangeAction(caret, caret + 1, []));
+         return;
+      }
+
+      int nextSpace = par.Text.IndexOf(' ', local);
+      int end = nextSpace < 0 ? (par.StartInDoc + par.Text.Length) : (par.StartInDoc + nextSpace + 1);
+      ExecuteEdit(BuildReplaceRangeAction(caret, end, []));
 
    }
 

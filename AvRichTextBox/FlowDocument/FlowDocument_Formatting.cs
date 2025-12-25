@@ -126,49 +126,17 @@ public partial class FlowDocument
 
    internal void ApplyFormattingRange(AvaloniaProperty avProperty, object value, TextRange textRange)
    {
-      List<IEditable> newInlines = CreateNewInlinesForRange(textRange);
+      var start = textRange.Start;
+      var end = textRange.End;
 
-      List<EditablePropertyAssociation> propertyAssociations = [];
-         
-      foreach (IEditable inline in newInlines)
-      {
-         EditablePropertyAssociation iedPropAssoc = new(inline, null!, null!);
-         propertyAssociations.Add(iedPropAssoc);
-         if (inline.GetType() == typeof(EditableRun))
-         {
-            if (_formatRunActions.TryGetValue(avProperty, out var runAction))
-               iedPropAssoc.FormatRun = runAction;
-            iedPropAssoc.PropertyValue = ((EditableRun)inline).GetValue(avProperty)!;
-         }
-      }
-      
-      Undos.Add(new ApplyFormattingUndo(Undos.Head, this, propertyAssociations, Selection.Start, textRange));
+      List<IEditable> newInlines = CreateNewInlinesForRange(textRange);
 
       if (_formatRunsActions.TryGetValue(avProperty, out var runsAction))
          runsAction(newInlines, value);
       else
          throw new NotSupportedException($"Formatting for {avProperty.Name} is not supported.");
 
-      UpdateBlockAndInlineStarts(Blocks.IndexOf(Blocks.LastOrDefault(p => p.StartInDoc <= textRange.Start)!));
-      
-      foreach (Paragraph p in GetRangeBlocks(textRange).Where(b=>b.IsParagraph))
-         p.CallRequestInlinesUpdate();
-
-      
-      Selection.BiasForwardStart = true;
-      Selection.BiasForwardEnd = true;
-      Selection.StartParagraph = GetContainingParagraph(Selection.Start);
-      Selection.StartParagraph.SelectionStartInBlock = Selection.Start - Selection.StartParagraph.StartInDoc;
-      Selection.EndParagraph.SelectionEndInBlock = Selection.End - Selection.EndParagraph.StartInDoc;
-      Selection.GetEndInline();
-      Selection.GetEndInline();
-
-      UpdateSelectedParagraphs();
-
-      if (ShowDebugger)
-         UpdateDebuggerSelectionParagraphs();
-      
-
+      ExecuteEdit(BuildReplaceRangeAction(start, end, newInlines));
    }
   
    

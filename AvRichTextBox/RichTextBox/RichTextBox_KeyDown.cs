@@ -46,6 +46,13 @@ public partial class RichTextBox
             case Key.Z:
                if (IsReadOnly) return;
                FlowDoc.Undo();
+               UpdateCurrentParagraphLayout();
+               break;
+
+            case Key.Y:
+               if (IsReadOnly) return;
+               FlowDoc.Redo();
+               UpdateCurrentParagraphLayout();
                break;
 
             case Key.A:

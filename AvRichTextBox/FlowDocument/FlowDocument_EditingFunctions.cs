@@ -38,8 +38,6 @@ public partial class FlowDocument
       int deleteRangeLength = tRange.Length;
       int parIndex = Blocks.IndexOf(startPar);
 
-      Undos.Add(new PasteUndo(Undos.Head, KeepParsAndInlines(tRange), parIndex, this, rangeStart, deleteRangeLength - newInlines.Sum(nil=>nil.InlineLength)));
-
       //Delete selected range first
       if (tRange.Length > 0)
          DeleteRange(tRange, false);
@@ -105,8 +103,6 @@ public partial class FlowDocument
       int deleteRangeLength = tRange.Length;
       int parIndex = Blocks.IndexOf(startPar);
 
-      Undos.Add(new PasteUndo(Undos.Head, KeepParsAndInlines(tRange), parIndex, this, rangeStart, deleteRangeLength - newText.Length));
-
       //Delete any selected text first
       if (tRange.Length > 0)
       {
@@ -139,31 +135,6 @@ public partial class FlowDocument
       startPar.CallRequestInlinesUpdate();
       UpdateBlockAndInlineStarts(startPar);
 
-   }
-
-
-   internal void Undo()
-   {
-      if (Undos.Count > 0)
-      {
-         Undo undo = Undos.Last();
-         undo.PerformUndo();
-
-         UpdateSelection();
-
-         if (undo.UpdateTextRanges)
-            UpdateTextRanges(Selection.Start, undo.UndoEditOffset);
-
-         Undos.RemoveAt(Undos.Count - 1);
-
-         UpdateSelectedParagraphs();
-         
-         if (ShowDebugger)
-            UpdateDebuggerSelectionParagraphs();
-
-         ScrollInDirection!(1);
-         ScrollInDirection!(-1);
-      }
    }
 
    internal void RestoreDeletedBlocks(Dictionary<Block, List<IEditable>> parsAndInlines, int blockIndex)

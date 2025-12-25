@@ -30,13 +30,21 @@ public partial class RichTextBox
    {
       this.UpdateLayout();
       RtbVm.UpdateCaretVisible();
+
+      // Caret position (CaretMargin/CaretHeight) is computed in code-behind handlers
+      // `SelectionStart_RectChanged` / `SelectionEnd_RectChanged`, which are triggered by
+      // Paragraph.RequestTextLayoutInfoStart/End toggles. During coalesced typing we may do
+      // an internal undo+redo in one input event; forcing a layout info refresh here keeps
+      // the visual caret in sync with the (correct) selection indices.
+      FlowDoc.Selection.StartParagraph.CallRequestTextLayoutInfoStart();
+      FlowDoc.Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
    }
 
    internal void InsertParagraph()
    {
       if (IsReadOnly) return;
 
-      FlowDoc.InsertParagraph(true, FlowDoc.Selection.Start);
+      FlowDoc.ExecuteEdit(FlowDoc.BuildReplaceRangeAction(FlowDoc.Selection.Start, FlowDoc.Selection.End, [new EditableRun("\r")]));
       UpdateCurrentParagraphLayout();
 
    }

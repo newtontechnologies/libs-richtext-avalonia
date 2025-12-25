@@ -65,10 +65,8 @@ public partial class RichTextBox
             RTFDomDocument dom = new();
             dom.LoadRTFText(rtfstring);
             List<IEditable> insertInlines = RtfConversions.GetInlinesFromRtf(dom);
-            insertInlines.Reverse();
-            int addedchars = FlowDoc.SetRangeToInlines(FlowDoc.Selection, insertInlines);
-
-            newSelPoint = Math.Min(newSelPoint + addedchars, FlowDoc.DocEndPoint - 1);
+            FlowDoc.ExecuteEdit(FlowDoc.BuildReplaceRangeAction(FlowDoc.Selection.Start, FlowDoc.Selection.End, insertInlines));
+            newSelPoint = FlowDoc.Selection.Start;
 
             textPasted = true;
          }
@@ -80,9 +78,9 @@ public partial class RichTextBox
          if (textobj != null)
          {
             string pasteText = textobj.ToString()!;
-            FlowDoc.SetRangeToText(FlowDoc.Selection, pasteText);
-
-            newSelPoint = Math.Min(newSelPoint + pasteText.Length, FlowDoc.DocEndPoint - 1);
+            var inlines = new List<IEditable> { new EditableRun(pasteText) };
+            FlowDoc.ExecuteEdit(FlowDoc.BuildReplaceRangeAction(FlowDoc.Selection.Start, FlowDoc.Selection.End, inlines));
+            newSelPoint = FlowDoc.Selection.Start;
 
             textPasted = true;
          }
@@ -98,10 +96,6 @@ public partial class RichTextBox
 
          FlowDoc.Select(newSelPoint, 0);
          FlowDoc.UpdateSelection();
-
-         FlowDoc.Selection.BiasForwardStart = false;
-         FlowDoc.Selection.BiasForwardEnd = false;
-         FlowDoc.SelectionExtendMode = ExtendMode.ExtendModeNone;
 
          CreateClient();
       }

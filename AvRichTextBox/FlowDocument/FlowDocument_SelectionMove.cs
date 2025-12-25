@@ -42,7 +42,7 @@ public partial class FlowDocument
 
       Selection.CollapseToEnd();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
-      ScrollInDirection!(1);
+      ScrollInDirection?.Invoke(1);
 
       Selection!.BiasForwardStart = isTextInsertion ? false : true;
       Selection!.BiasForwardEnd = Selection.BiasForwardStart;
@@ -85,7 +85,7 @@ public partial class FlowDocument
       Selection!.BiasForwardEnd = Selection!.BiasForwardStart;
       Selection.CollapseToStart();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
-      ScrollInDirection!(-1);
+      ScrollInDirection?.Invoke(-1);
 
    }
 
@@ -122,7 +122,7 @@ public partial class FlowDocument
       }
 
       Selection.CollapseToEnd();
-      ScrollInDirection!(1);
+      ScrollInDirection?.Invoke(1);
 
    }
     
@@ -162,7 +162,7 @@ public partial class FlowDocument
       }
 
       Selection.CollapseToStart();
-      ScrollInDirection!(-1);
+      ScrollInDirection?.Invoke(-1);
 
    }
    
@@ -197,7 +197,7 @@ public partial class FlowDocument
       Selection.CollapseToEnd();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       
-      ScrollInDirection!(1);
+      ScrollInDirection?.Invoke(1);
 
    }
 
@@ -230,7 +230,7 @@ public partial class FlowDocument
       Selection.CollapseToStart();
       
       SelectionExtendMode = ExtendMode.ExtendModeNone;
-      ScrollInDirection!(-1);
+      ScrollInDirection?.Invoke(-1);
       
    }
 
@@ -242,7 +242,7 @@ public partial class FlowDocument
       Selection!.Start = 0;
       Selection.CollapseToStart();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
-      ScrollInDirection!(-1);
+      ScrollInDirection?.Invoke(-1);
 
       foreach (Paragraph p in Blocks)
          p.ClearSelection();
@@ -259,7 +259,7 @@ public partial class FlowDocument
       Selection!.End = Blocks[^1].StartInDoc + Blocks[^1].BlockLength - 1;
       Selection.CollapseToEnd();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
-      ScrollInDirection!(1);
+      ScrollInDirection?.Invoke(1);
 
       foreach (Paragraph p in Blocks)
          p.ClearSelection();
@@ -294,7 +294,7 @@ public partial class FlowDocument
       else
          SelectionExtendMode = ExtendMode.ExtendModeLeft;
 
-      ScrollInDirection!(-1);
+      ScrollInDirection?.Invoke(-1);
 
    }
 
@@ -332,7 +332,7 @@ public partial class FlowDocument
       else
          SelectionExtendMode = ExtendMode.ExtendModeRight;
 
-      ScrollInDirection!(1);
+      ScrollInDirection?.Invoke(1);
 
       Selection.BiasForwardStart = false;
       Selection.BiasForwardEnd = Selection.BiasForwardStart;
