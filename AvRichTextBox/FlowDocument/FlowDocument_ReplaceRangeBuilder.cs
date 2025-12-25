@@ -6,7 +6,7 @@ namespace AvRichTextBox;
 
 public partial class FlowDocument
 {
-   internal CompositeEditAction BuildReplaceRangeAction(int start, int end, List<IEditable> insertInlines)
+   internal EditAction BuildReplaceRangeAction(int start, int end, List<IEditable> insertInlines)
    {
       if (end < start) throw new ArgumentOutOfRangeException(nameof(end));
 
@@ -51,7 +51,7 @@ public partial class FlowDocument
       var selectionAfter = new SelectionState(caret, caret, ExtendMode.ExtendModeNone, BiasForwardStart: false, BiasForwardEnd: false);
 
       int refreshFromIndex = Blocks.IndexOf(startPar);
-      return new CompositeEditAction(edits, selectionBefore, selectionAfter, refreshFromIndex, refreshPars.Distinct().ToList());
+      return new EditAction(edits, selectionBefore, selectionAfter, refreshFromIndex, refreshPars.Distinct().ToList());
    }
 
    internal Paragraph ResolveStartParagraph(int docIndex)

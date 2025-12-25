@@ -78,7 +78,7 @@ public partial class FlowDocument
 
    }
 
-   private CompositeEditAction BuildTypingInsertAction(int caret, string text)
+   private EditAction BuildTypingInsertAction(int caret, string text)
    {
       var selectionBefore = CaptureSelectionState();
 
@@ -119,10 +119,10 @@ public partial class FlowDocument
          ShiftPoints = [caret]
       };
 
-      return new CompositeEditAction(edits, selectionBefore, selectionAfter, refreshFrom, [p]);
+      return new EditAction(edits, selectionBefore, selectionAfter, refreshFrom, [p]);
    }
 
-   private CompositeEditAction BuildMergedTypingAction(TypingCoalesceState state)
+   private EditAction BuildMergedTypingAction(TypingCoalesceState state)
    {
       // Build a merged action representing all typed chars as one undo entry.
       var edits = new List<IAtomicEdit>(1 + state.ShiftPoints.Count);
@@ -136,7 +136,7 @@ public partial class FlowDocument
       int caretAfter = state.ShiftPoints[^1] + 1;
       var selectionAfter = new SelectionState(caretAfter, caretAfter, ExtendMode.ExtendModeNone, BiasForwardStart: false, BiasForwardEnd: false);
 
-      return new CompositeEditAction(edits, state.SelectionBefore, selectionAfter, state.RefreshFromBlockIndex, [state.Paragraph]);
+      return new EditAction(edits, state.SelectionBefore, selectionAfter, state.RefreshFromBlockIndex, [state.Paragraph]);
    }
 
    internal void DeleteChar(bool backspace)

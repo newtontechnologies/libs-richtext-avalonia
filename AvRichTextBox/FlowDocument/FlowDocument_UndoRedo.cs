@@ -33,7 +33,7 @@ public partial class FlowDocument
    /// <summary>
    /// Entry point for all user edit operations. Enforces: clear redo stack, put action into redo stack, then apply via Redo().
    /// </summary>
-   internal void ExecuteEdit(CompositeEditAction action)
+   internal void ExecuteEdit(EditAction action)
    {
       // Any non-coalesced edit breaks the typing coalescing chain.
       _canCoalesceTyping = false;
@@ -45,7 +45,7 @@ public partial class FlowDocument
 
    internal void Undo()
    {
-      if (!UndoStack.Any) return;
+      if (UndoStack.Count == 0) return;
 
       var action = UndoStack.Pop();
       action.Unapply(this);
@@ -54,7 +54,7 @@ public partial class FlowDocument
 
    internal void Redo()
    {
-      if (!RedoStack.Any) return;
+      if (RedoStack.Count == 0) return;
 
       var action = RedoStack.Pop();
       action.Apply(this);

@@ -28,10 +28,10 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
 
    internal bool IsEditable { get; set; } = true;
 
-   internal EditActionStack UndoStack { get; } = new();
-   internal EditActionStack RedoStack { get; } = new();
-   internal bool CanUndo => UndoStack.Any;
-   internal bool CanRedo => RedoStack.Any;
+   internal Stack<EditAction> UndoStack { get; } = new();
+   internal Stack<EditAction> RedoStack { get; } = new();
+   internal bool CanUndo => UndoStack.Count > 0;
+   internal bool CanRedo => RedoStack.Count > 0;
    internal int UndoCount => UndoStack.Count;
    internal int RedoCount => RedoStack.Count;
 
