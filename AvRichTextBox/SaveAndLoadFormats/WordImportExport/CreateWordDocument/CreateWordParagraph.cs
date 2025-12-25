@@ -60,19 +60,19 @@ internal static partial class WordConversions
                parg.AppendChild(new Break());
                break;
 
-            case EditableInlineUIContainer edUIC:
+            case EditableInlineUiContainer edUic:
 
-               if (edUIC.Child.GetType() == typeof(Image))
+               if (edUic.Child.GetType() == typeof(Image))
                {
                   //string fontFamily = edUIC.FontFamily.ToString();
 
-                  Image img = (Image)edUIC.Child;
+                  Image img = (Image)edUic.Child;
                   img.Width = img.Bounds.Width;
                   img.Height = img.Bounds.Height;
                   Bitmap? imgbitmap = (Bitmap)img.Source!;
 
                   string extension = "";
-                  ImagePart imagePart = mainPart!.AddImagePart(ImagePartType.Jpeg);
+                  ImagePart imagePart = _mainPart!.AddImagePart(ImagePartType.Jpeg);
                                                       
                   //Debug.WriteLine("Imagesource is null ? : " + (thisImg.Source == null));
                   if (imgbitmap != null)
@@ -85,7 +85,7 @@ internal static partial class WordConversions
                         extension = ".jpg";
                      }
 
-                     parg.AppendChild(new DOW.Run(CreateWordDocDrawing(mainPart!.GetIdOfPart(imagePart), img.Width, img.Height, extension)));
+                     parg.AppendChild(new DOW.Run(CreateWordDocDrawing(_mainPart!.GetIdOfPart(imagePart), img.Width, img.Height, extension)));
 
                   }
                }

@@ -11,7 +11,7 @@ namespace AvRichTextBox;
 
 internal static partial class WordConversions
 {
-   internal static MainDocumentPart? mainDocPart;
+   internal static MainDocumentPart? MainDocPart;
    internal static string DefaultEastAsiaFont = "";
    internal static string DefaultAsciiFont = "";
 
@@ -21,7 +21,7 @@ internal static partial class WordConversions
       try
       {
 
-         mainDocPart = mDocPart;
+         MainDocPart = mDocPart;
 
          //Implement doc-wide properties someday:
 
@@ -62,7 +62,7 @@ internal static partial class WordConversions
 
          fdoc.PagePadding = new Thickness(50); //set a small default padding
 
-         DocumentFormat.OpenXml.Wordprocessing.PageMargin? pMarg = mainDocPart.Document.Descendants<DocumentFormat.OpenXml.Wordprocessing.PageMargin>().FirstOrDefault()!;
+         DocumentFormat.OpenXml.Wordprocessing.PageMargin? pMarg = MainDocPart.Document.Descendants<DocumentFormat.OpenXml.Wordprocessing.PageMargin>().FirstOrDefault()!;
 
          if (pMarg != null)
          {
@@ -81,7 +81,7 @@ internal static partial class WordConversions
          //}
 
 
-         OpenXmlElement? docBody = mainDocPart.Document.Body!;
+         OpenXmlElement? docBody = MainDocPart.Document.Body!;
 
          if (docBody != null)
          {

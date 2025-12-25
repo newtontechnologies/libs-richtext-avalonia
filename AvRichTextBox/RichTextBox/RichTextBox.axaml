@@ -120,8 +120,8 @@
 													TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
 													TextLayoutInfoEndRequested="{Binding RequestTextLayoutInfoEnd}"
 														 
-													SelectionStartRect_Changed="SelectionStart_RectChanged"
-													SelectionEndRect_Changed="SelectionEnd_RectChanged"
+													SelectionStartRectChanged="SelectionStart_RectChanged"
+													SelectionEndRectChanged="SelectionEnd_RectChanged"
 													local:RequestExtensions.TextBoxFocusRequested="{Binding RequestTextBoxFocus}"
 													local:RequestExtensions.IsInlineUpdateRequested="{Binding RequestInlinesUpdate}"
 													local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}" />

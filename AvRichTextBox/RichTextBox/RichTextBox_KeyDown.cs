@@ -79,7 +79,7 @@ public partial class RichTextBox
          {
             case Key.Escape:
                if (PreeditOverlay.IsVisible)
-                  HideIMEOverlay();
+                  HideImeOverlay();
                break;
 
             case Key.Enter:
@@ -144,8 +144,8 @@ public partial class RichTextBox
 
          }
 
-         rtbVM.CaretVisible = (rtbVM.FlowDoc.Selection.Length == 0);
-         if (client != null)
+         RtbVm.CaretVisible = (RtbVm.FlowDoc.Selection.Length == 0);
+         if (_client != null)
             UpdatePreeditOverlay();
 
       }

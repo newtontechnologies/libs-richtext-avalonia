@@ -17,11 +17,11 @@ public partial class RichTextBox
       UpdateCurrentParagraphLayout();
       
       if (PreeditOverlay.IsVisible)
-         HideIMEOverlay();
+         HideImeOverlay();
          
    }
 
-   private void HideIMEOverlay()
+   private void HideImeOverlay()
    {
       _preeditText = "";
       PreeditOverlay.IsVisible = false;
@@ -31,7 +31,7 @@ public partial class RichTextBox
    internal void UpdateCurrentParagraphLayout()
    {
       this.UpdateLayout();
-      rtbVM.UpdateCaretVisible();
+      RtbVm.UpdateCaretVisible();
    }
 
    internal void InsertParagraph()

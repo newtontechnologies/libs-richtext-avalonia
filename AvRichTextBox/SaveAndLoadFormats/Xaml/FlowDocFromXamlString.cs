@@ -16,7 +16,7 @@ namespace AvRichTextBox;
 public partial class XamlConversions
 {
    
-   static List<Bitmap> consecutiveImageBitmaps = [];
+   static List<Bitmap> _consecutiveImageBitmaps = [];
 
    [GeneratedRegex(@"Xaml/Image[0-9]{1,}\.png")]
    public static partial Regex FindXamlImageEntriesRegex();
@@ -27,7 +27,7 @@ public partial class XamlConversions
       {
          using FileStream fstream = new(fileName, FileMode.Open);
          using ZipArchive zipArchive = new(fstream, ZipArchiveMode.Read);
-         string EntryXamlDocumentName = "";
+         string entryXamlDocumentName = "";
          ZipArchiveEntry? relsEntry = zipArchive.GetEntry("_rels/.rels");
          if (relsEntry != null)
          {
@@ -35,14 +35,14 @@ public partial class XamlConversions
             byte[] relsBytes = new byte[(int)relsEntry.Length];
             s.Read(relsBytes, 0, relsBytes.Length);
             string relString = Encoding.UTF8.GetString(relsBytes);
-            string RelationshipEntryLine = @"<Relationship Type=.*?/xaml/entry.*?/>";
-            Match relLine = Regex.Match(relString, RelationshipEntryLine);
+            string relationshipEntryLine = @"<Relationship Type=.*?/xaml/entry.*?/>";
+            Match relLine = Regex.Match(relString, relationshipEntryLine);
             Match m = Regex.Match(relLine.Value, @"(?<=Target="").*?(?="")");
-            EntryXamlDocumentName = m.Value.TrimStart('/');
+            entryXamlDocumentName = m.Value.TrimStart('/');
          }
 
          //Get all sequentially numbered images for file
-         if (EntryXamlDocumentName != "")
+         if (entryXamlDocumentName != "")
          {
 
             List<ZipArchiveEntry> imageEntries = zipArchive.Entries.Where(ent => FindXamlImageEntriesRegex().IsMatch(ent.FullName)).ToList();
@@ -57,15 +57,15 @@ public partial class XamlConversions
                      MemoryStream memStream = new();
                      s.CopyTo(memStream);
                      memStream.Position = 0;
-                     consecutiveImageBitmaps.Add(new Bitmap(memStream));
+                     _consecutiveImageBitmaps.Add(new Bitmap(memStream));
                   }
-                  catch { consecutiveImageBitmaps.Add(null!); Debug.WriteLine("png file in package could not be gotten.: " + imageEntry.FullName); }
+                  catch { _consecutiveImageBitmaps.Add(null!); Debug.WriteLine("png file in package could not be gotten.: " + imageEntry.FullName); }
                }
             }
 
 
             //Get the Docxaml data
-            ZipArchiveEntry? xamlDocEntry = zipArchive.GetEntry(EntryXamlDocumentName);
+            ZipArchiveEntry? xamlDocEntry = zipArchive.GetEntry(entryXamlDocumentName);
 
             if (xamlDocEntry != null)
             {
@@ -100,10 +100,10 @@ public partial class XamlConversions
       xamlDocument.LoadXml(docXamlString);
       if (xamlDocument.ChildNodes.Count == 1)
       {
-         XmlNode? SectionNode = xamlDocument.ChildNodes[0];
-         if (SectionNode!.Name == "Section")
+         XmlNode? sectionNode = xamlDocument.ChildNodes[0];
+         if (sectionNode!.Name == "Section")
          {
-            foreach (XmlNode parNode in SectionNode.ChildNodes.OfType<XmlNode>().Where(n => n.Name == "Paragraph"))
+            foreach (XmlNode parNode in sectionNode.ChildNodes.OfType<XmlNode>().Where(n => n.Name == "Paragraph"))
             {
                Paragraph newPar = new();
 
@@ -162,7 +162,7 @@ public partial class XamlConversions
 
                foreach (XmlNode inlineNode in parNode.ChildNodes.OfType<XmlNode>())
                {
-                  IEditable? newIED = null;
+                  IEditable? newIed = null;
                   switch (inlineNode.Name)
                   {
                      case "Run":
@@ -265,24 +265,24 @@ public partial class XamlConversions
                                  break;
                            }
                         }
-                        newIED = erun;
+                        newIed = erun;
                         break;
 
                      case "LineBreak":
                         //EditableRun eLineBreak = new(@"\v");
                         EditableLineBreak eLineBreak = new();
-                        newIED = eLineBreak;
+                        newIed = eLineBreak;
                         break;
 
                      case "InlineUIContainer":
-                        EditableInlineUIContainer eIUC = new(null!);
+                        EditableInlineUiContainer eIuc = new(null!);
                         
                         foreach (XmlAttribute att in inlineNode.Attributes!)
                         {
                            switch (att.Name)
                            {
                               case "FontFamily":
-                                 eIUC.FontFamily = new FontFamily(att.Value);
+                                 eIuc.FontFamily = new FontFamily(att.Value);
                                  break;
                            }
                         }
@@ -328,8 +328,8 @@ public partial class XamlConversions
                                              Match imgNoMatch = Regex.Match(uriSourceAtt.Value, "(?<=Image)[0-9]{1,}");
                                              if (imgNoMatch.Success)
                                              {
-                                                int ImageNo = int.Parse(imgNoMatch.Value);
-                                                img.Source = consecutiveImageBitmaps[ImageNo - 1];
+                                                int imageNo = int.Parse(imgNoMatch.Value);
+                                                img.Source = _consecutiveImageBitmaps[imageNo - 1];
                                              }
                                           }
                                        }
@@ -337,11 +337,11 @@ public partial class XamlConversions
                                  }
                               }
 
-                              eIUC.Child = img;
+                              eIuc.Child = img;
                            }
                         }
 
-                        newIED = eIUC;
+                        newIed = eIuc;
 
                         break;
 
@@ -350,8 +350,8 @@ public partial class XamlConversions
                         break;
                   }
 
-                  if (newIED != null)
-                     newPar.Inlines.Add(newIED);
+                  if (newIed != null)
+                     newPar.Inlines.Add(newIed);
                }
 
                if (newPar.Inlines.Count == 0) newPar.Inlines.Add(new EditableRun(""));

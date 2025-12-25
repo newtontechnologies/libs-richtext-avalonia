@@ -56,9 +56,9 @@ internal static partial class HtmlConversions
                      //parnode.AppendChild(br);
                      break;
 
-                  case EditableInlineUIContainer eUIC:
+                  case EditableInlineUiContainer eUic:
 
-                     if (eUIC.Child is Image img && img.Source is Bitmap bmp)
+                     if (eUic.Child is Image img && img.Source is Bitmap bmp)
                      {
                         using var memStream = new MemoryStream();
                         bmp.Save(memStream); 

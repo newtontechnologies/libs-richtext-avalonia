@@ -14,8 +14,8 @@ public class Block : INotifyPropertyChanged
    public event PropertyChangedEventHandler? PropertyChanged;
    public void NotifyPropertyChanged([CallerMemberName] String propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
-   private Thickness _Margin = new (0, 0, 0, 0);
-   public Thickness Margin { get => _Margin; set { _Margin = value; NotifyPropertyChanged(nameof(Margin)); } }
+   private Thickness _margin = new (0, 0, 0, 0);
+   public Thickness Margin { get => _margin; set { _margin = value; NotifyPropertyChanged(nameof(Margin)); } }
 
    public string Text
    {
@@ -42,32 +42,32 @@ public class Block : INotifyPropertyChanged
    internal int SelectionLength => SelectionEndInBlock - SelectionStartInBlock;
    public int BlockLength => this.IsParagraph ? ((Paragraph)this).Inlines.ToList().Sum(il => il.InlineLength) + 1 : 1;  //Add one for paragraph itself
 
-   private int _StartInDoc = 0;
+   private int _startInDoc = 0;
    internal int StartInDoc
    {
-      get => _StartInDoc;
-      set { if (_StartInDoc != value) { _StartInDoc = value; NotifyPropertyChanged(nameof(StartInDoc)); } }
+      get => _startInDoc;
+      set { if (_startInDoc != value) { _startInDoc = value; NotifyPropertyChanged(nameof(StartInDoc)); } }
    }
 
    internal int EndInDoc => StartInDoc + BlockLength;
 
-   private int _SelectionStartInBlock;
+   private int _selectionStartInBlock;
    public int SelectionStartInBlock
    {
-      get => _SelectionStartInBlock;
-      set { if (_SelectionStartInBlock != value) { _SelectionStartInBlock = value; NotifyPropertyChanged(nameof(SelectionStartInBlock)); } }
+      get => _selectionStartInBlock;
+      set { if (_selectionStartInBlock != value) { _selectionStartInBlock = value; NotifyPropertyChanged(nameof(SelectionStartInBlock)); } }
    }
 
-   private int _SelectionEndInBlock;
+   private int _selectionEndInBlock;
    public int SelectionEndInBlock
    {
-      get => _SelectionEndInBlock;
+      get => _selectionEndInBlock;
       set
       {
 
-         if (_SelectionEndInBlock != value)
+         if (_selectionEndInBlock != value)
          {
-            _SelectionEndInBlock = value; // Set the correct value
+            _selectionEndInBlock = value; // Set the correct value
             NotifyPropertyChanged(nameof(SelectionEndInBlock));
          }
 
@@ -84,7 +84,7 @@ public class Block : INotifyPropertyChanged
       this.SelectionEndInBlock = 0;
       if (this is Paragraph p)
       {
-         foreach (EditableInlineUIContainer iuc in p.Inlines.OfType<EditableInlineUIContainer>())
+         foreach (EditableInlineUiContainer iuc in p.Inlines.OfType<EditableInlineUiContainer>())
             iuc.IsSelected = false;
       }
       

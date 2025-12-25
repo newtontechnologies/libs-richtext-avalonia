@@ -104,24 +104,24 @@ public partial class FlowDocument
 
       Paragraph startP = (Paragraph)Selection.StartParagraph;
 
-      int IndexNext = -1; 
+      int indexNext = -1; 
       if (startP.SelectionStartInBlock == startP.Text.Length)
          Selection.End += 1;
       else
       {
          IEditable startInline = Selection.GetStartInline();
-         if (startInline.IsUIContainer || startInline.IsLineBreak)
+         if (startInline.IsUiContainer || startInline.IsLineBreak)
             Selection.End += 1;
          else
          {
-            IndexNext = startP.Text.IndexOfAny(" \v".ToCharArray(), startP.SelectionStartInBlock);
-            if (IndexNext == -1)
-               IndexNext = startP.Text.Length;
+            indexNext = startP.Text.IndexOfAny(" \v".ToCharArray(), startP.SelectionStartInBlock);
+            if (indexNext == -1)
+               indexNext = startP.Text.Length;
             else
-               IndexNext += 1;  // go beyond the space
+               indexNext += 1;  // go beyond the space
 
-            int NextWordEndPoint = Selection.StartParagraph.StartInDoc + IndexNext;
-            Selection.End = NextWordEndPoint;
+            int nextWordEndPoint = Selection.StartParagraph.StartInDoc + indexNext;
+            Selection.End = nextWordEndPoint;
          }
       }
 
@@ -138,7 +138,7 @@ public partial class FlowDocument
       Selection!.BiasForwardStart = false;
       Selection!.BiasForwardEnd = false;
 
-      int IndexNext = -1;
+      int indexNext = -1;
       Paragraph startP = (Paragraph)Selection.StartParagraph;
       
       if (startP.SelectionStartInBlock == 0)
@@ -151,16 +151,16 @@ public partial class FlowDocument
          startP = (Paragraph)Selection.StartParagraph;
          IEditable startInline = Selection.GetStartInline();
 
-         if (!startInline.IsUIContainer)
+         if (!startInline.IsUiContainer)
          {
-           IndexNext = startP.Text.LastIndexOfAny(" \v".ToCharArray(), startP.SelectionStartInBlock - 1);
-            if (IndexNext == -1)
-               IndexNext = 0;
+           indexNext = startP.Text.LastIndexOfAny(" \v".ToCharArray(), startP.SelectionStartInBlock - 1);
+            if (indexNext == -1)
+               indexNext = 0;
             else
-               IndexNext += 1;  // go to right of space
+               indexNext += 1;  // go to right of space
 
-            int NextWordEndPoint = Selection.StartParagraph.StartInDoc + IndexNext;
-            Selection.Start = NextWordEndPoint;
+            int nextWordEndPoint = Selection.StartParagraph.StartInDoc + indexNext;
+            Selection.Start = nextWordEndPoint;
          }
 
       }
@@ -190,7 +190,7 @@ public partial class FlowDocument
          {
             int nextParIndex = Blocks.IndexOf(Selection.EndParagraph) + 1;
             Paragraph nextPar = (Paragraph)Blocks[nextParIndex];
-            int oldSE = Selection.End;
+            int oldSe = Selection.End;
             Selection.End = Math.Min(nextPar.StartInDoc + nextPar.BlockLength - 1, nextEnd);
          }
       }
@@ -222,7 +222,7 @@ public partial class FlowDocument
          {
             int prevParIndex = Blocks.IndexOf(Selection.StartParagraph) - 1;
             Paragraph prevPar = (Paragraph)Blocks[prevParIndex];
-            int oldSS = Selection.Start;
+            int oldSs = Selection.Start;
             Selection.Start = Math.Min(prevPar.StartInDoc + prevPar.BlockLength - 1, prevPar.StartInDoc + prevPar.FirstIndexLastLine + Selection.StartParagraph.CharPrevLineStart);
          }
       }
@@ -278,7 +278,7 @@ public partial class FlowDocument
       
       Select(DocEndPoint - 1, 0);
       
-      UpdateRTBCaret?.Invoke();
+      UpdateRtbCaret?.Invoke();
 
    }
 
@@ -319,7 +319,7 @@ public partial class FlowDocument
          Selection!.End = Selection.EndParagraph.StartInDoc + thisEndPar.LastIndexEndLine;
 
       string parText = thisEndPar.Text;
-      if (thisEndPar.LastIndexEndLine <= parText.Length && (parText[thisEndPar.LastIndexEndLine] == ' ' || IsCJKChar(parText[thisEndPar.LastIndexEndLine])))
+      if (thisEndPar.LastIndexEndLine <= parText.Length && (parText[thisEndPar.LastIndexEndLine] == ' ' || IsCjkChar(parText[thisEndPar.LastIndexEndLine])))
       {
          Selection.IsAtEndOfLineSpace = true;
          Selection.End += 1;

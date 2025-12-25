@@ -9,10 +9,10 @@ public partial class EditableParagraph
     public event MouseMoveHandler? MouseMove;
 
     public delegate void SelectionStartRectChangedHandler(EditableParagraph sender);
-    public event SelectionStartRectChangedHandler? SelectionStartRect_Changed;
+    public event SelectionStartRectChangedHandler? SelectionStartRectChanged;
 
     public delegate void SelectionEndRectChangedHandler(EditableParagraph sender);
-    public event SelectionEndRectChangedHandler? SelectionEndRect_Changed;
+    public event SelectionEndRectChangedHandler? SelectionEndRectChanged;
 
    //public delegate void TextChangedHandler(EditableParagraph sender);
    //public event TextChangedHandler? EditableParagraph_TextChanged;

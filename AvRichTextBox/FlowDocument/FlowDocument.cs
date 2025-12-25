@@ -20,21 +20,21 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
    public new event PropertyChangedEventHandler? PropertyChanged;
    private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
-   public delegate void ScrollInDirection_Handler(int direction);
-   internal event ScrollInDirection_Handler? ScrollInDirection;
+   public delegate void ScrollInDirectionHandler(int direction);
+   internal event ScrollInDirectionHandler? ScrollInDirection;
 
-   public delegate void SelectionChanged_Handler(TextRange selection);
-   public event SelectionChanged_Handler? Selection_Changed;
+   public delegate void SelectionChangedHandler(TextRange selection);
+   public event SelectionChangedHandler? SelectionChanged;
 
-   public delegate void UpdateRTBCaret_Handler();
-   internal event UpdateRTBCaret_Handler? UpdateRTBCaret;
+   public delegate void UpdateRtbCaretHandler();
+   internal event UpdateRtbCaretHandler? UpdateRtbCaret;
    
-   private Thickness _PagePadding = new (0);
-   public Thickness PagePadding { get => _PagePadding; set {  _PagePadding = value; NotifyPropertyChanged(nameof(PagePadding)); } }
+   private Thickness _pagePadding = new (0);
+   public Thickness PagePadding { get => _pagePadding; set {  _pagePadding = value; NotifyPropertyChanged(nameof(PagePadding)); } }
 
    internal bool IsEditable { get; set; } = true;
 
-   readonly SolidColorBrush caretBrush = new(Colors.Cyan, 0.55);
+   readonly SolidColorBrush _caretBrush = new(Colors.Cyan, 0.55);
 
    internal UndoStack Undos { get; } = new();
 
@@ -71,12 +71,12 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       this.SelectionExtendMode = ExtendMode.ExtendModeRight;
    }
 
-   public void Select(int Start, int Length)
+   public void Select(int start, int length)
    {
       SelectionParagraphs.Clear();
 
-      Selection.Start = Start;
-      Selection.End = Start + Length;
+      Selection.Start = start;
+      Selection.End = start + length;
 
       EnsureSelectionContinuity();
 
@@ -105,8 +105,8 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
    {
 
       Selection = new TextRange(this, 0, 0);
-      Selection.Start_Changed += SelectionStart_Changed;
-      Selection.End_Changed += SelectionEnd_Changed;
+      Selection.StartChanged += SelectionStart_Changed;
+      Selection.EndChanged += SelectionEnd_Changed;
 
       NewDocument();
 
@@ -163,7 +163,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
 
       InitializeParagraphs();
 
-      UpdateRTBCaret?.Invoke();
+      UpdateRtbCaret?.Invoke();
 
 
    }
@@ -217,7 +217,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       //Selection.StartParagraph.CallRequestInlinesUpdate();
       Selection.GetStartInline();
       Selection.StartParagraph.CallRequestTextLayoutInfoStart();
-      Selection_Changed?.Invoke(Selection);
+      SelectionChanged?.Invoke(Selection);
 
    }
 
@@ -245,7 +245,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       //Selection.EndParagraph.CallRequestInlinesUpdate();
       Selection.GetEndInline();
       Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
-      Selection_Changed?.Invoke(Selection);
+      SelectionChanged?.Invoke(Selection);
 
    }
 
@@ -301,9 +301,9 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
 
    internal void ResetSelectionLengthZero(Paragraph currPar)
    {
-      int StartParIndex = Blocks.IndexOf(Selection!.StartParagraph);
-      int EndParIndex = Blocks.IndexOf(Selection!.EndParagraph);
-      foreach (Paragraph p in Blocks.Where(pp => { int pindex = Blocks.IndexOf(pp); return pindex >= StartParIndex && pindex <= EndParIndex; }))
+      int startParIndex = Blocks.IndexOf(Selection!.StartParagraph);
+      int endParIndex = Blocks.IndexOf(Selection!.EndParagraph);
+      foreach (Paragraph p in Blocks.Where(pp => { int pindex = Blocks.IndexOf(pp); return pindex >= startParIndex && pindex <= endParIndex; }))
       {
          if (p != currPar)
             p.ClearSelection();

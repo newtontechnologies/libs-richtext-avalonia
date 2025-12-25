@@ -22,8 +22,8 @@ public partial class XamlConversions
 {
 
    internal static string SectionTextDefault => "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">";
-   internal static Uri packageRelsUri = new(@"avares://AvRichTextBox/SaveAndLoadFormats/Xaml/XamlPackageData/.rels");
-   internal static Uri contentTypesUri = new(@"avares://AvRichTextBox/SaveAndLoadFormats/Xaml/XamlPackageData/[Content_Types].xml");
+   internal static Uri PackageRelsUri = new(@"avares://AvRichTextBox/SaveAndLoadFormats/Xaml/XamlPackageData/.rels");
+   internal static Uri ContentTypesUri = new(@"avares://AvRichTextBox/SaveAndLoadFormats/Xaml/XamlPackageData/[Content_Types].xml");
 
    //string ParagraphTextDefault => "<Paragraph LineHeight=\"18.666666666666668\" FontFamily=\"Times New Roman, ‚l‚r –¾’©\" Margin=\"0,0,0,0\" Padding=\"0,0,0,0\">";
 
@@ -32,14 +32,14 @@ public partial class XamlConversions
 
       using FileStream fstream = new(fileName, FileMode.Create);
       using ZipArchive zipArchive = new(fstream, ZipArchiveMode.Create);
-      var resource = AssetLoader.Open(packageRelsUri);
+      var resource = AssetLoader.Open(PackageRelsUri);
       var reader = new StreamReader(resource);
       ZipArchiveEntry relsEntry = zipArchive.CreateEntry("_rels/.rels");
       byte[] relsBytes = Encoding.UTF8.GetBytes(reader.ReadToEnd());
       using (var s = relsEntry.Open())
       { s.Write(relsBytes, 0, relsBytes.Length); }
 
-      resource = AssetLoader.Open(contentTypesUri);
+      resource = AssetLoader.Open(ContentTypesUri);
       reader = new StreamReader(resource);
       ZipArchiveEntry contentsEntry = zipArchive.CreateEntry("[Content_Types].xml");
       byte[] contentsBytes = Encoding.UTF8.GetBytes(reader.ReadToEnd());
@@ -49,7 +49,7 @@ public partial class XamlConversions
 
       //Save images, if any  
       List<Paragraph> imageContainingParagraphs = fdoc.Blocks.Where(b => b.IsParagraph && ((Paragraph)b).Inlines.Where(iline =>
-          iline.GetType() == typeof(EditableInlineUIContainer) && ((EditableInlineUIContainer)iline).Child.GetType() == typeof(Image)).Any()).ToList().ConvertAll(bb => (Paragraph)bb);
+          iline.GetType() == typeof(EditableInlineUiContainer) && ((EditableInlineUiContainer)iline).Child.GetType() == typeof(Image)).Any()).ToList().ConvertAll(bb => (Paragraph)bb);
 
       if (imageContainingParagraphs.Count != 0)
       {
@@ -57,10 +57,10 @@ public partial class XamlConversions
          List<UniqueBitmap> uniqueBitmaps = [];
          foreach (Paragraph p in imageContainingParagraphs)
          {
-            foreach (EditableInlineUIContainer imageUIContainer in p.Inlines.Where(iline => iline.GetType() == typeof(EditableInlineUIContainer) &&
-                       ((EditableInlineUIContainer)iline).Child.GetType() == typeof(Image)))
+            foreach (EditableInlineUiContainer imageUiContainer in p.Inlines.Where(iline => iline.GetType() == typeof(EditableInlineUiContainer) &&
+                       ((EditableInlineUiContainer)iline).Child.GetType() == typeof(Image)))
             {
-               Image? thisImg = imageUIContainer.Child as Image;
+               Image? thisImg = imageUiContainer.Child as Image;
 
                Bitmap imgbitmap = (Bitmap)thisImg!.Source!;
 
@@ -69,26 +69,26 @@ public partial class XamlConversions
                {
                   //Create dummy bitmap to maintain doc/image structure
                   imageNo += 1;
-                  Bitmap dummyBMP = new RenderTargetBitmap(new PixelSize(10, 10));
-                  uniqueBitmaps.Add(new UniqueBitmap(dummyBMP, (int)thisImg.Width, (int)thisImg.Height, imageNo));
-                  imageUIContainer.ImageNo = imageNo;
+                  Bitmap dummyBmp = new RenderTargetBitmap(new PixelSize(10, 10));
+                  uniqueBitmaps.Add(new UniqueBitmap(dummyBmp, (int)thisImg.Width, (int)thisImg.Height, imageNo));
+                  imageUiContainer.ImageNo = imageNo;
                }
                else
                {
-                  UniqueBitmap foundUniqueBitmap = uniqueBitmaps.Where(bmp => bmp.uBitmap == imgbitmap).FirstOrDefault()!;
+                  UniqueBitmap foundUniqueBitmap = uniqueBitmaps.Where(bmp => bmp.UBitmap == imgbitmap).FirstOrDefault()!;
                   if (foundUniqueBitmap == null)
                   {  //add as new unique bitmap
                      imageNo += 1;
                      uniqueBitmaps.Add(new UniqueBitmap(imgbitmap, (int)thisImg.Width, (int)thisImg.Height, imageNo));
-                     imageUIContainer.ImageNo = imageNo;
+                     imageUiContainer.ImageNo = imageNo;
                   }
                   else
                   {
-                     if (foundUniqueBitmap.maxWidth < thisImg.Width)
-                        foundUniqueBitmap.maxWidth = (int)thisImg.Width;
-                     if (foundUniqueBitmap.maxHeight < thisImg.Height)
-                        foundUniqueBitmap.maxHeight = (int)thisImg.Height;
-                     imageUIContainer.ImageNo = foundUniqueBitmap.consecutiveIndex;
+                     if (foundUniqueBitmap.MaxWidth < thisImg.Width)
+                        foundUniqueBitmap.MaxWidth = (int)thisImg.Width;
+                     if (foundUniqueBitmap.MaxHeight < thisImg.Height)
+                        foundUniqueBitmap.MaxHeight = (int)thisImg.Height;
+                     imageUiContainer.ImageNo = foundUniqueBitmap.ConsecutiveIndex;
                   }
 
                }
@@ -102,8 +102,8 @@ public partial class XamlConversions
             //if (uB.uBitmap != null)
             //{
             var memoryStream = new MemoryStream();
-            if (uB.uBitmap != null)
-               ResizeAndSaveBitmap(uB.uBitmap, uB.maxWidth, uB.maxHeight, memoryStream);
+            if (uB.UBitmap != null)
+               ResizeAndSaveBitmap(uB.UBitmap, uB.MaxWidth, uB.MaxHeight, memoryStream);
             memoryStream.Seek(0, SeekOrigin.Begin);
 
             string imageName = "Xaml/Image" + imageNo.ToString() + ".png";
@@ -146,8 +146,8 @@ public partial class XamlConversions
       foreach (Paragraph paragraph in fdoc.Blocks)
       {
 
-         StringBuilder ParagraphHeader = new ("<Paragraph ");
-         ParagraphHeader.Append(
+         StringBuilder paragraphHeader = new ("<Paragraph ");
+         paragraphHeader.Append(
             $"FontFamily=\"{paragraph.FontFamily.Name}" +
             $"\" FontWeight=\"{paragraph.FontWeight}" + 
             $"\" FontStyle=\"{paragraph.FontStyle}" + 
@@ -155,7 +155,7 @@ public partial class XamlConversions
             $"\" Margin=\"{paragraph.Margin}" + 
             $"\" Background=\"{paragraph.Background}" + 
             "\">");
-         selXaml.Append(ParagraphHeader);
+         selXaml.Append(paragraphHeader);
 
          selXaml.Append(GetParagraphRunsXaml(paragraph.Inlines, isXamlPackage));
      
@@ -180,10 +180,10 @@ public partial class XamlConversions
             case Type t when t == typeof(EditableRun):
 
                EditableRun erun = (EditableRun)ied;
-               StringBuilder RunHeader = new("<Run ");
-               RunHeader.Append(GetRunAttributesString(erun));
+               StringBuilder runHeader = new("<Run ");
+               runHeader.Append(GetRunAttributesString(erun));
                //Debug.WriteLine("runheader= " + GetRunAttributesString(erun));
-               runXamlBuilder.Append(RunHeader);
+               runXamlBuilder.Append(runHeader);
                runXamlBuilder.Append(erun.Text!.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;"));
                runXamlBuilder.Append("</Run>");
                break;
@@ -192,23 +192,23 @@ public partial class XamlConversions
                runXamlBuilder.Append("<LineBreak/>");
                break;
 
-            case Type t when t == typeof(EditableInlineUIContainer):
+            case Type t when t == typeof(EditableInlineUiContainer):
 
                if (isXamlPackage)
                {
-                  EditableInlineUIContainer eIUC = (EditableInlineUIContainer)ied;
-                  string InlineUIHeader = $"<InlineUIContainer FontFamily=\"{eIUC.FontFamily.Name}\" BaselineAlignment=\"{eIUC.BaselineAlignment}\">";
-                  runXamlBuilder.Append(InlineUIHeader);
+                  EditableInlineUiContainer eIuc = (EditableInlineUiContainer)ied;
+                  string inlineUiHeader = $"<InlineUIContainer FontFamily=\"{eIuc.FontFamily.Name}\" BaselineAlignment=\"{eIuc.BaselineAlignment}\">";
+                  runXamlBuilder.Append(inlineUiHeader);
 
-                  if (eIUC.Child.GetType() == typeof(Image))
+                  if (eIuc.Child.GetType() == typeof(Image))
                   {
-                     Image childImage = (Image)eIUC.Child;
-                     string ImageHeader = $"<Image Stretch=\"Fill\" Width=\"{childImage.Width}\" Height=\"{childImage.Height}\">";
-                     runXamlBuilder.Append(ImageHeader);
+                     Image childImage = (Image)eIuc.Child;
+                     string imageHeader = $"<Image Stretch=\"Fill\" Width=\"{childImage.Width}\" Height=\"{childImage.Height}\">";
+                     runXamlBuilder.Append(imageHeader);
 
                      runXamlBuilder.Append(
                          "<Image.Source>" +
-                         $"<BitmapImage UriSource=\"./Image{eIUC.ImageNo}.png\" CacheOption=\"OnLoad\" />" +
+                         $"<BitmapImage UriSource=\"./Image{eIuc.ImageNo}.png\" CacheOption=\"OnLoad\" />" +
                          "</Image.Source>"
                      );
 
@@ -228,19 +228,19 @@ public partial class XamlConversions
 
    internal static string GetRunAttributesString(EditableRun erun)
    {
-      StringBuilder attSB = new ();
+      StringBuilder attSb = new ();
 
-      attSB.Append($"FontFamily=\"{erun.FontFamily}\"");
-      attSB.Append($" FontWeight=\"{erun.FontWeight}\"");
-      attSB.Append($" FontSize=\"{erun.FontSize}\"");
-      attSB.Append($" FontStyle=\"{erun.FontStyle}\"");
-      attSB.Append($" FontStretch=\"{erun.FontStretch}\"");
-      attSB.Append($" BaselineAlignment=\"{erun.BaselineAlignment}\"");
+      attSb.Append($"FontFamily=\"{erun.FontFamily}\"");
+      attSb.Append($" FontWeight=\"{erun.FontWeight}\"");
+      attSb.Append($" FontSize=\"{erun.FontSize}\"");
+      attSb.Append($" FontStyle=\"{erun.FontStyle}\"");
+      attSb.Append($" FontStretch=\"{erun.FontStretch}\"");
+      attSb.Append($" BaselineAlignment=\"{erun.BaselineAlignment}\"");
 
       if (erun.Foreground != null)
-         attSB.Append($" Foreground=\"{erun.Foreground}\"");
+         attSb.Append($" Foreground=\"{erun.Foreground}\"");
       if (erun.Background != null)
-         attSB.Append($" Background=\"{erun.Background}\"");
+         attSb.Append($" Background=\"{erun.Background}\"");
 
       if (erun.TextDecorations != null)
       {
@@ -262,13 +262,13 @@ public partial class XamlConversions
             }
             textDecString += "\"";
          }
-         attSB.Append(textDecString);
+         attSb.Append(textDecString);
       }
       
       //Closing bracket
-      attSB.Append('>');
+      attSb.Append('>');
 
-      return attSB.ToString();
+      return attSb.ToString();
    }
 
 

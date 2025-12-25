@@ -8,10 +8,10 @@ namespace AvRichTextBox;
 
 internal static partial class WordConversions
 {
-   internal static DOW.Drawing CreateWordDocDrawing(string relationshipID, double pixelWidth, double pixelHeight, string extension)
+   internal static DOW.Drawing CreateWordDocDrawing(string relationshipId, double pixelWidth, double pixelHeight, string extension)
    {
-      double emuWidth = PixToEMU(pixelWidth);
-      double emuHeight = PixToEMU(pixelHeight);
+      double emuWidth = PixToEmu(pixelWidth);
+      double emuHeight = PixToEmu(pixelHeight);
 
       var drawingElement = new DOW.Drawing(new DW.Inline(new DW.Extent()
       {
@@ -37,7 +37,7 @@ internal static partial class WordConversions
           new PIC.NonVisualPictureDrawingProperties()),
           new PIC.BlipFill(new A.Blip(new A.BlipExtensionList(new A.BlipExtension() { Uri = "{28A0092B-C50C-407E-A947-70E740481C1C}" }))
           {
-             Embed = relationshipID,
+             Embed = relationshipId,
              CompressionState = A.BlipCompressionValues.Print
           }, new A.Stretch(new A.FillRectangle())
           ),

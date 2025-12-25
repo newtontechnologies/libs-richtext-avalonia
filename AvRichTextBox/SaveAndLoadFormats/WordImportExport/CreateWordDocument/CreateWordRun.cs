@@ -27,7 +27,7 @@ internal static partial class WordConversions
             Space = SpaceProcessingModeValues.Preserve
          };  
 
-         var RunProp = new RunProperties();
+         var runProp = new RunProperties();
 
          if (edRun.TextDecorations != null)
          {
@@ -36,40 +36,40 @@ internal static partial class WordConversions
                switch (td.Location)
                {
                   case TextDecorationLocation.Underline:
-                     RunProp.AppendChild(new DOW.Underline() { Val = UnderlineValues.Single, Color = "Black" });
+                     runProp.AppendChild(new DOW.Underline() { Val = UnderlineValues.Single, Color = "Black" });
                      break;
                   case TextDecorationLocation.Overline: { break; }
                   case TextDecorationLocation.Baseline: { break; }
                   case TextDecorationLocation.Strikethrough:
-                     RunProp.AppendChild(new DOW.Strike());
+                     runProp.AppendChild(new DOW.Strike());
                      break; 
                }
             }
          }
 
          if (edRun.FontWeight == FontWeight.Bold)
-            RunProp.AppendChild(new DOW.Bold());
+            runProp.AppendChild(new DOW.Bold());
 
          if (edRun.FontStyle == FontStyle.Italic)
-            RunProp.AppendChild(new DOW.Italic());
+            runProp.AppendChild(new DOW.Italic());
 
          if (edRun.Background != null)
          {
-            var Hlight = new  Highlight() { Val = BrushToHighlightColorValue(edRun.Background) };
-            RunProp.AppendChild(Hlight);
+            var hlight = new  Highlight() { Val = BrushToHighlightColorValue(edRun.Background) };
+            runProp.AppendChild(hlight);
          }
 
          if (edRun.Foreground != null)
          {
             var foreColor = new DOW.Color() { Val  = edRun.Foreground.ToString() };
-            RunProp.AppendChild(foreColor);
+            runProp.AppendChild(foreColor);
          }
 
          switch (edRun.BaselineAlignment)
          {
-            case BaselineAlignment.Baseline: RunProp.AppendChild(new VerticalTextAlignment() { Val = VerticalPositionValues.Baseline }); break;
-            case BaselineAlignment.TextTop: RunProp.AppendChild(new VerticalTextAlignment() { Val = VerticalPositionValues.Superscript }); break;
-            case BaselineAlignment.Bottom: RunProp.AppendChild(new VerticalTextAlignment() { Val = VerticalPositionValues.Subscript }); break;
+            case BaselineAlignment.Baseline: runProp.AppendChild(new VerticalTextAlignment() { Val = VerticalPositionValues.Baseline }); break;
+            case BaselineAlignment.TextTop: runProp.AppendChild(new VerticalTextAlignment() { Val = VerticalPositionValues.Superscript }); break;
+            case BaselineAlignment.Bottom: runProp.AppendChild(new VerticalTextAlignment() { Val = VerticalPositionValues.Subscript }); break;
          }
 
          // Get font
@@ -85,11 +85,11 @@ internal static partial class WordConversions
          
          fntSize = edRun.FontSize * 0.75 * 2;  // converts pixels to points
 
-         RunProp.AppendChild(rFont);
-         RunProp.AppendChild(new FontSize() { Val = fntSize.ToString() });
+         runProp.AppendChild(rFont);
+         runProp.AppendChild(new FontSize() { Val = fntSize.ToString() });
 
          //Attach run properties
-         newrun.AppendChild(RunProp);
+         newrun.AppendChild(runProp);
 
          // Must parse line breaks
          if (!string.IsNullOrEmpty(runtext.Text))

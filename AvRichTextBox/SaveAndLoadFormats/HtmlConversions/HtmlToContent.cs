@@ -137,7 +137,7 @@ internal static partial class HtmlConversions
                            if (inlineNode.GetAttributeValue("height", null!) is string h && double.TryParse(h, out var height))
                               img.Height = height;
 
-                           p.Inlines.Add(new EditableInlineUIContainer(img));
+                           p.Inlines.Add(new EditableInlineUiContainer(img));
                         }
                      }
 

@@ -67,10 +67,10 @@ public partial class RichTextBox : UserControl
       //**********Fix caret height and position*********:
       int lineIndex = tlayout.GetLineIndexFromCharacterIndex(edPar.SelectionStart, false);
 
-      rtbVM.CaretHeight = textLines[lineIndex].Extent;
-      if (rtbVM.CaretHeight == 0)
-         rtbVM.CaretHeight = textLines[lineIndex].Height;
-      rtbVM.CaretHeight += 4; // give it an extra bit
+      RtbVm.CaretHeight = textLines[lineIndex].Extent;
+      if (RtbVm.CaretHeight == 0)
+         RtbVm.CaretHeight = textLines[lineIndex].Height;
+      RtbVm.CaretHeight += 4; // give it an extra bit
 
 
       double caretMLeft = selStartPoint!.Value.X;
@@ -88,8 +88,8 @@ public partial class RichTextBox : UserControl
          //caretMTop = selStartPoint.Value.Y;
          caretMTop = textTopY;
 
-      rtbVM.CaretMargin = new Thickness(caretMLeft, caretMTop, 0, 0);
-      rtbVM.UpdateCaretVisible();
+      RtbVm.CaretMargin = new Thickness(caretMLeft, caretMTop, 0, 0);
+      RtbVm.UpdateCaretVisible();
 
       // Visualization rectangles:
       //rtbVM.LineHeightRectMargin = new Thickness(caretMLeft + 3, FlowDoc.Selection.StartRect.Top, 0, 0);
@@ -150,7 +150,7 @@ public partial class RichTextBox : UserControl
 
       thisPar.FirstIndexLastLine = textLines[^1].FirstTextSourceIndex;
 
-      rtbVM.UpdateCaretVisible();
+      RtbVm.UpdateCaretVisible();
 
    }
 
@@ -159,10 +159,10 @@ public partial class RichTextBox : UserControl
    {
       CharacterHit chit = edPar.TextLayout.TextLines[lineNo + direction].GetCharacterHitFromDistance(distanceFromLeft);
 
-      double CharDistanceDiffThis = Math.Abs(distanceFromLeft - edPar.TextLayout.HitTestTextPosition(chit.FirstCharacterIndex).Left);
-      double CharDistanceDiffNext = Math.Abs(distanceFromLeft - edPar.TextLayout.HitTestTextPosition(chit.FirstCharacterIndex + 1).Left);
+      double charDistanceDiffThis = Math.Abs(distanceFromLeft - edPar.TextLayout.HitTestTextPosition(chit.FirstCharacterIndex).Left);
+      double charDistanceDiffNext = Math.Abs(distanceFromLeft - edPar.TextLayout.HitTestTextPosition(chit.FirstCharacterIndex + 1).Left);
 
-      if (CharDistanceDiffThis > CharDistanceDiffNext)
+      if (charDistanceDiffThis > charDistanceDiffNext)
          return chit.FirstCharacterIndex + 1;
       else
          return chit.FirstCharacterIndex;

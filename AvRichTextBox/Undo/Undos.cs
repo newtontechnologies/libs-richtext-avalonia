@@ -57,7 +57,7 @@ internal class DeleteCharUndo(Undo? previous, int deleteParIndex, int deleteInli
       
 }
 
-internal class DeleteImageUndo(Undo? previous, int deleteParIndex, IEditable deletedIUC, int deletedInlineIdx, FlowDocument flowDoc, int origSelectionStart, bool emptyRunAdded) : Undo(previous)
+internal class DeleteImageUndo(Undo? previous, int deleteParIndex, IEditable deletedIuc, int deletedInlineIdx, FlowDocument flowDoc, int origSelectionStart, bool emptyRunAdded) : Undo(previous)
 {
    public override int UndoEditOffset => 1;
    public override bool UpdateTextRanges => true;
@@ -69,7 +69,7 @@ internal class DeleteImageUndo(Undo? previous, int deleteParIndex, IEditable del
          Paragraph thisPar = (Paragraph)flowDoc.Blocks[deleteParIndex];
          if (emptyRunAdded)
             thisPar.Inlines.RemoveAt(deletedInlineIdx);
-         thisPar.Inlines.Insert(deletedInlineIdx, deletedIUC);
+         thisPar.Inlines.Insert(deletedInlineIdx, deletedIuc);
          thisPar.CallRequestInlinesUpdate();
          flowDoc.UpdateBlockAndInlineStarts(deleteParIndex);
          flowDoc.Selection.Start = origSelectionStart;
@@ -179,7 +179,7 @@ internal class MergeParagraphUndo (Undo? previous, int origMergedParInlinesCount
 }
 
 
-internal class ApplyFormattingUndo (Undo? previous, FlowDocument flowDoc, List<IEditablePropertyAssociation> propertyAssociations, int originalSelection, TextRange tRange) : Undo(previous) 
+internal class ApplyFormattingUndo (Undo? previous, FlowDocument flowDoc, List<EditablePropertyAssociation> propertyAssociations, int originalSelection, TextRange tRange) : Undo(previous) 
 {
    public override int UndoEditOffset => 0;
    public override bool UpdateTextRanges => false;
@@ -187,7 +187,7 @@ internal class ApplyFormattingUndo (Undo? previous, FlowDocument flowDoc, List<I
    public override void PerformUndo()
    {
 
-      foreach (IEditablePropertyAssociation propassoc in propertyAssociations)
+      foreach (EditablePropertyAssociation propassoc in propertyAssociations)
          if (propassoc.FormatRun != null)
             flowDoc.ApplyFormattingInline(propassoc.FormatRun, propassoc.InlineItem, propassoc.PropertyValue);
 
@@ -211,8 +211,8 @@ internal class InsertLineBreakUndo(Undo? previous, int insertParIndex, int inser
       try
       {
          if (flowDoc.Blocks[insertParIndex] is not Paragraph thisPar) return;
-         if (thisPar.Inlines[insertInlineIdx] is not EditableLineBreak thisELB) return;
-         thisPar.Inlines.Remove(thisELB);
+         if (thisPar.Inlines[insertInlineIdx] is not EditableLineBreak thisElb) return;
+         thisPar.Inlines.Remove(thisElb);
          thisPar.CallRequestInlinesUpdate();
          flowDoc.UpdateBlockAndInlineStarts(insertParIndex);
          flowDoc.Selection.Start = origSelectionStart;

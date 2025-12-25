@@ -12,7 +12,7 @@ public partial class FlowDocument
 {
    internal void InsertText(string? insertText)
    {
-      if (Selection.GetStartInline() is not IEditable startInline || startInline.GetType() == typeof(EditableInlineUIContainer)) return;
+      if (Selection.GetStartInline() is not IEditable startInline || startInline.GetType() == typeof(EditableInlineUiContainer)) return;
 
       if (insertText != null)
       {
@@ -25,7 +25,7 @@ public partial class FlowDocument
          }
 
          int insertIdx = 0;
-         if (InsertRunMode)
+         if (_insertRunMode)
          {
             List<IEditable> applyInlines = CreateNewInlinesForRange(Selection);
             if (applyInlines.Count == 0)
@@ -35,8 +35,8 @@ public partial class FlowDocument
             }
             startInline = applyInlines[0];
             startInline.InlineText = insertText;
-            toggleFormatRun!(startInline);
-            InsertRunMode = false;
+            _toggleFormatRun!(startInline);
+            _insertRunMode = false;
          }
          else
          {  //Debug.WriteLine("starinlinetext = " + startInline.InlineText);
@@ -84,7 +84,7 @@ public partial class FlowDocument
          string deletedChar = "";
          int selectionStartInInline = 0;
 
-         if (startInline is EditableInlineUIContainer eIUC)
+         if (startInline is EditableInlineUiContainer eIuc)
          {
             bool emptyRunAdded = false;
             if (startP.Inlines.Count == 1)
@@ -93,9 +93,9 @@ public partial class FlowDocument
                emptyRunAdded = true;
             }
                
-            Undos.Add(new DeleteImageUndo(Undos.Head, Blocks.IndexOf(startP), eIUC, startInlineIdx, this, originalSelectionStart, emptyRunAdded));
+            Undos.Add(new DeleteImageUndo(Undos.Head, Blocks.IndexOf(startP), eIuc, startInlineIdx, this, originalSelectionStart, emptyRunAdded));
 
-            startP.Inlines.Remove(eIUC);
+            startP.Inlines.Remove(eIuc);
          }
          else
          {
@@ -281,21 +281,21 @@ public partial class FlowDocument
       }
 
       IEditable startInline = GetStartInline(insertCharIndex);
-      int StartRunIdx = insertPar.Inlines.IndexOf(startInline);
+      int startRunIdx = insertPar.Inlines.IndexOf(startInline);
 
       //Split at selection
       List<IEditable> parSplitRuns = SplitRunAtPos(insertCharIndex, startInline, startInline.GetCharPosInInline(insertCharIndex));
 
 
-      List<IEditable> RunList1 = [.. insertPar.Inlines.Take(new Range(0, StartRunIdx)).ToList().ConvertAll(r => r)];
-      if (parSplitRuns[0].InlineText != "" || RunList1.Count == 0)
-         RunList1.Add(parSplitRuns[0]);
-      List<IEditable> RunList2 = [.. insertPar.Inlines.Take(new Range(StartRunIdx + 1, insertPar.Inlines.Count)).ToList().ConvertAll(r => r as IEditable)];
+      List<IEditable> runList1 = [.. insertPar.Inlines.Take(new Range(0, startRunIdx)).ToList().ConvertAll(r => r)];
+      if (parSplitRuns[0].InlineText != "" || runList1.Count == 0)
+         runList1.Add(parSplitRuns[0]);
+      List<IEditable> runList2 = [.. insertPar.Inlines.Take(new Range(startRunIdx + 1, insertPar.Inlines.Count)).ToList().ConvertAll(r => r as IEditable)];
       
       Paragraph originalPar = insertPar;
       
       originalPar.Inlines.Clear();
-      originalPar.Inlines.AddRange(RunList1);
+      originalPar.Inlines.AddRange(runList1);
       originalPar.SelectionStartInBlock = 0;
       originalPar.CollapseToStart();
 
@@ -306,7 +306,7 @@ public partial class FlowDocument
 
       Paragraph parToInsert = originalPar.PropertyClone();
 
-      parToInsert.Inlines.AddRange(RunList2);
+      parToInsert.Inlines.AddRange(runList2);
       Blocks.Insert(parIndex + 1, parToInsert);
 
       if (parToInsert.Inlines.Count == 0)
@@ -349,19 +349,19 @@ public partial class FlowDocument
       int origParInlinesCount = thisPar.Inlines.Count;
 
       Paragraph nextPar = (Paragraph)Blocks[thisParIndex + 1];
-      bool IsNextParagraphEmpty = nextPar.Inlines.Count == 1 && nextPar.Inlines[0].IsEmpty;
-      bool IsThisParagraphEmpty = thisPar.Inlines.Count == 1 && thisPar.Inlines[0].IsEmpty;
+      bool isNextParagraphEmpty = nextPar.Inlines.Count == 1 && nextPar.Inlines[0].IsEmpty;
+      bool isThisParagraphEmpty = thisPar.Inlines.Count == 1 && thisPar.Inlines[0].IsEmpty;
 
       if (saveUndo)
          Undos.Add(new MergeParagraphUndo(Undos.Head, origParInlinesCount, thisParIndex, nextPar.FullClone(), this, originalSelectionStart));
 
-      if (IsThisParagraphEmpty)
+      if (isThisParagraphEmpty)
          thisPar.Inlines.Clear();
 
       //bool runAdded = false;
-      if (IsNextParagraphEmpty)
+      if (isNextParagraphEmpty)
       {
-         if (IsThisParagraphEmpty)
+         if (isThisParagraphEmpty)
          {
             thisPar.Inlines.Add(new EditableRun(""));
             //runAdded = true;
@@ -420,24 +420,24 @@ public partial class FlowDocument
          MergeParagraphForward(Selection.Start, true, originalSelectionStart); //updates text ranges and adds undo
       else
       {
-         int NextWordEndPoint = -1;
+         int nextWordEndPoint = -1;
          IEditable startInline = Selection.GetStartInline();
-         if (startInline.IsUIContainer || startInline.IsLineBreak)
-            NextWordEndPoint = Selection.Start + 1;
+         if (startInline.IsUiContainer || startInline.IsLineBreak)
+            nextWordEndPoint = Selection.Start + 1;
          else
          {
-            int IndexNextSpace = Selection.StartParagraph.Text.IndexOf(' ', Selection.Start - Selection.StartParagraph.StartInDoc);
-            if (IndexNextSpace == -1)
-               IndexNextSpace = Selection.StartParagraph.Text.Length;
+            int indexNextSpace = Selection.StartParagraph.Text.IndexOf(' ', Selection.Start - Selection.StartParagraph.StartInDoc);
+            if (indexNextSpace == -1)
+               indexNextSpace = Selection.StartParagraph.Text.Length;
             else
-               IndexNextSpace += 1;
-            NextWordEndPoint = Selection.StartParagraph.StartInDoc + IndexNextSpace;
+               indexNextSpace += 1;
+            nextWordEndPoint = Selection.StartParagraph.StartInDoc + indexNextSpace;
          }
 
          //if (startP.Inlines.Count > 1)
          //   startP.RemoveEmptyInlines();
          
-         TextRange deleteTextRange = new (this, Selection.Start, NextWordEndPoint);
+         TextRange deleteTextRange = new (this, Selection.Start, nextWordEndPoint);
          DeleteRange(deleteTextRange, true);  // updates all text ranges and adds undo
                            
          UpdateBlockAndInlineStarts(Blocks.IndexOf(startP));

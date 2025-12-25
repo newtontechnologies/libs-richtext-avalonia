@@ -15,7 +15,7 @@ public class EditableLineBreak : LineBreak, IEditable, INotifyPropertyChanged
    public EditableLineBreak() { }
 
    public Inline BaseInline => this;
-   public Paragraph? myParagraph { get; set; }
+   public Paragraph? MyParagraph { get; set; }
    public int TextPositionOfInlineInParagraph { get; set; }
    public string InlineText { get; set; } = @"\v"; //make literal to count as 2 characters
    //public string InlineText { get; set; } = "\v";
@@ -26,16 +26,16 @@ public class EditableLineBreak : LineBreak, IEditable, INotifyPropertyChanged
    public bool IsEmpty => false;
    public bool IsLastInlineOfParagraph { get; set; }
  
-   public IEditable Clone() => new EditableLineBreak() { myParagraph = this.myParagraph };
+   public IEditable Clone() => new EditableLineBreak() { MyParagraph = this.MyParagraph };
 
 
    //for DebuggerPanel 
-   private bool _IsStartInline = false;
-   public bool IsStartInline { get => _IsStartInline; set { _IsStartInline = value; NotifyPropertyChanged(nameof(BackBrush)); NotifyPropertyChanged(nameof(InlineSelectedBorderThickness)); } }
-   private bool _IsEndInline = false;
-   public bool IsEndInline { get => _IsEndInline; set { _IsEndInline = value; NotifyPropertyChanged(nameof(BackBrush)); NotifyPropertyChanged(nameof(InlineSelectedBorderThickness)); } }
-   private bool _IsWithinSelectionInline = false;
-   public bool IsWithinSelectionInline { get => _IsWithinSelectionInline; set { _IsWithinSelectionInline = value; NotifyPropertyChanged(nameof(BackBrush)); } }
+   private bool _isStartInline = false;
+   public bool IsStartInline { get => _isStartInline; set { _isStartInline = value; NotifyPropertyChanged(nameof(BackBrush)); NotifyPropertyChanged(nameof(InlineSelectedBorderThickness)); } }
+   private bool _isEndInline = false;
+   public bool IsEndInline { get => _isEndInline; set { _isEndInline = value; NotifyPropertyChanged(nameof(BackBrush)); NotifyPropertyChanged(nameof(InlineSelectedBorderThickness)); } }
+   private bool _isWithinSelectionInline = false;
+   public bool IsWithinSelectionInline { get => _isWithinSelectionInline; set { _isWithinSelectionInline = value; NotifyPropertyChanged(nameof(BackBrush)); } }
    public Thickness InlineSelectedBorderThickness => (IsStartInline || IsEndInline) ? new Thickness(3) : new Thickness(1);
 
    public SolidColorBrush BackBrush

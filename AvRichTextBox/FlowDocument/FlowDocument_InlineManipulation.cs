@@ -17,7 +17,7 @@ public partial class FlowDocument
       if (startPar == null | endPar == null) return [];
 
       //Create clones of all inlines
-      List<IEditable> AllSelectedInlines = Blocks.Where(b => b.IsParagraph).SelectMany( b =>
+      List<IEditable> allSelectedInlines = Blocks.Where(b => b.IsParagraph).SelectMany( b =>
             ((Paragraph)b).Inlines.Where(iline => 
             {
                double absInlineStart = b.StartInDoc + iline.TextPositionOfInlineInParagraph;
@@ -34,15 +34,15 @@ public partial class FlowDocument
       });
 
       //Edge case
-      if (AllSelectedInlines.Count == 0)
-         AllSelectedInlines = Blocks.Where(b => b.IsParagraph).SelectMany(b =>
+      if (allSelectedInlines.Count == 0)
+         allSelectedInlines = Blocks.Where(b => b.IsParagraph).SelectMany(b =>
             ((Paragraph)b).Inlines.Where(iline => b.StartInDoc + iline.TextPositionOfInlineInParagraph + iline.InlineLength >= trange.Start &&
              b.StartInDoc + iline.TextPositionOfInlineInParagraph < trange.End)).ToList().ConvertAll(il => il.Clone());
 
-      IEditable firstInline = AllSelectedInlines[0];
+      IEditable firstInline = allSelectedInlines[0];
       int firstInlineSplitIndex = Math.Min(trange.Start - startPar!.StartInDoc - firstInline.TextPositionOfInlineInParagraph, firstInline.InlineText.Length);
 
-      if (AllSelectedInlines.Count == 1)
+      if (allSelectedInlines.Count == 1)
       {
          int lastInlineSplitIndex = trange.End - endPar!.StartInDoc - firstInline.TextPositionOfInlineInParagraph;
          //firstInline.InlineText = firstInline.InlineText[firstInlineSplitIndex..lastInlineSplitIndex];
@@ -50,13 +50,13 @@ public partial class FlowDocument
       }
       else
       {
-         IEditable lastInline = AllSelectedInlines[^1];
+         IEditable lastInline = allSelectedInlines[^1];
          int lastInlineSplitIndex = trange.End - endPar!.StartInDoc - lastInline.TextPositionOfInlineInParagraph;
          firstInline.InlineText = firstInline.InlineText[firstInlineSplitIndex ..];
          lastInline.InlineText = lastInline.InlineText[..lastInlineSplitIndex];
       }
 
-      return AllSelectedInlines;
+      return allSelectedInlines;
 
    }
 
@@ -68,37 +68,37 @@ public partial class FlowDocument
       Paragraph? endPar = trange.GetEndPar();
       if (startPar == null | endPar == null) return [];
 
-      List<IEditable> AllSelectedInlines = Blocks.Where(b => b.IsParagraph).SelectMany(b =>
+      List<IEditable> allSelectedInlines = Blocks.Where(b => b.IsParagraph).SelectMany(b =>
          ((Paragraph)b).Inlines.Where(iline => b.StartInDoc + iline.TextPositionOfInlineInParagraph + iline.InlineLength > trange.Start &&
              b.StartInDoc + iline.TextPositionOfInlineInParagraph < trange.End)).ToList();
       
       //Edge case
-      if (AllSelectedInlines.Count == 0)
-         AllSelectedInlines = Blocks.Where(b => b.IsParagraph).SelectMany(b =>
+      if (allSelectedInlines.Count == 0)
+         allSelectedInlines = Blocks.Where(b => b.IsParagraph).SelectMany(b =>
             ((Paragraph)b).Inlines.Where(iline => b.StartInDoc + iline.TextPositionOfInlineInParagraph + iline.InlineLength >= trange.Start &&
              b.StartInDoc + iline.TextPositionOfInlineInParagraph < trange.End)).ToList();
 
-      if (AllSelectedInlines.Count == 0)
+      if (allSelectedInlines.Count == 0)
          return [];
 
-      IEditable firstInline = AllSelectedInlines[0];
-      IEditable lastInline = AllSelectedInlines[^1];
+      IEditable firstInline = allSelectedInlines[0];
+      IEditable lastInline = allSelectedInlines[^1];
       IEditable insertLastInline = lastInline.Clone();
 
       int lastInlineSplitIndex = trange.End - endPar!.StartInDoc - lastInline.TextPositionOfInlineInParagraph;
-      bool RangeEndsAtInlineEnd = lastInlineSplitIndex >= lastInline.InlineLength;
+      bool rangeEndsAtInlineEnd = lastInlineSplitIndex >= lastInline.InlineLength;
 
       string lastInlineText = lastInline.InlineText;
       int indexOfLastInline = endPar.Inlines.IndexOf(lastInline);
 
-      if (AllSelectedInlines.Count == 1)
+      if (allSelectedInlines.Count == 1)
       {
-         if (!RangeEndsAtInlineEnd)
+         if (!rangeEndsAtInlineEnd)
          {
             insertLastInline.InlineText = lastInlineText[..lastInlineSplitIndex];
             lastInline.InlineText = lastInlineText[lastInlineSplitIndex..];
-            AllSelectedInlines.RemoveAt(AllSelectedInlines.Count - 1);
-            AllSelectedInlines.Add(insertLastInline);
+            allSelectedInlines.RemoveAt(allSelectedInlines.Count - 1);
+            allSelectedInlines.Add(insertLastInline);
 
             endPar.Inlines.Insert(indexOfLastInline, insertLastInline);
 
@@ -108,9 +108,9 @@ public partial class FlowDocument
          string firstInlineText = insertLastInline.InlineText;
          int firstInlineSplitIndex = Math.Min(trange.Start - startPar!.StartInDoc - firstInline.TextPositionOfInlineInParagraph, firstInlineText.Length);
 
-         bool RangeStartsAtInlineStart = firstInlineSplitIndex <= 0;
+         bool rangeStartsAtInlineStart = firstInlineSplitIndex <= 0;
 
-         if (!RangeStartsAtInlineStart)
+         if (!rangeStartsAtInlineStart)
          {
             insertFirstInline.InlineText = firstInlineText[..firstInlineSplitIndex];
             insertLastInline.InlineText = firstInlineText[firstInlineSplitIndex..];
@@ -121,15 +121,15 @@ public partial class FlowDocument
       else
       {
          //split last run and remove trailing excess run from list
-         if (!RangeEndsAtInlineEnd)
+         if (!rangeEndsAtInlineEnd)
          {
             lastInline.InlineText = lastInlineText[..lastInlineSplitIndex];
-            AllSelectedInlines.Add(lastInline);
+            allSelectedInlines.Add(lastInline);
 
             insertLastInline.InlineText = lastInlineText[lastInlineSplitIndex..];
             endPar.Inlines.Insert(indexOfLastInline + 1, insertLastInline);
 
-            firstInline = AllSelectedInlines[0];
+            firstInline = allSelectedInlines[0];
          }
 
          IEditable insertFirstInline = firstInline.Clone();
@@ -138,14 +138,14 @@ public partial class FlowDocument
 
          // split first run and remove initial excess run from list
          int firstInlineSplitIndex = Math.Min(trange.Start - startPar.StartInDoc - firstInline.TextPositionOfInlineInParagraph, firstInlineText.Length);
-         bool RangeStartsAtInlineStart = firstInlineSplitIndex <= 0;
+         bool rangeStartsAtInlineStart = firstInlineSplitIndex <= 0;
 
-         if (!RangeStartsAtInlineStart)
+         if (!rangeStartsAtInlineStart)
          {
             firstInline.InlineText = firstInlineText[..firstInlineSplitIndex];
             insertFirstInline.InlineText = firstInlineText[firstInlineSplitIndex..];
-            AllSelectedInlines.Remove(firstInline);
-            AllSelectedInlines.Insert(0, insertFirstInline);
+            allSelectedInlines.Remove(firstInline);
+            allSelectedInlines.Insert(0, insertFirstInline);
             
             startPar.Inlines.Insert(indexOfFirstInline + 1, insertFirstInline);
          }
@@ -156,7 +156,7 @@ public partial class FlowDocument
       UpdateBlockAndInlineStarts(Blocks.IndexOf(startPar));
  
     
-      return AllSelectedInlines;
+      return allSelectedInlines;
 
    }
 
@@ -229,43 +229,43 @@ public partial class FlowDocument
 
    internal IEditable? GetNextInline(IEditable inline)
    {
-      IEditable returnIED = null!;
-      int myindex = inline.myParagraph!.Inlines.IndexOf(inline);
+      IEditable returnIed = null!;
+      int myindex = inline.MyParagraph!.Inlines.IndexOf(inline);
      
-      if (myindex < inline.myParagraph.Inlines.Count - 1)
-         returnIED = inline.myParagraph!.Inlines[myindex + 1];
+      if (myindex < inline.MyParagraph.Inlines.Count - 1)
+         returnIed = inline.MyParagraph!.Inlines[myindex + 1];
       else
       {
-         Paragraph? nextPar = GetNextParagraph(inline.myParagraph);
+         Paragraph? nextPar = GetNextParagraph(inline.MyParagraph);
          if (nextPar == null)
             return null!;
          else
             if (nextPar.Inlines.Count > 0)
-               returnIED = nextPar.Inlines[0];
+               returnIed = nextPar.Inlines[0];
       }
-      return returnIED;
+      return returnIed;
    }
 
    internal IEditable GetPreviousInline(IEditable inline) 
    {
-      IEditable returnIED = null!;
-      int myindex = inline.myParagraph!.Inlines.IndexOf(inline);
+      IEditable returnIed = null!;
+      int myindex = inline.MyParagraph!.Inlines.IndexOf(inline);
 
       if (myindex > 0)
-         returnIED = inline.myParagraph!.Inlines[myindex - 1];
+         returnIed = inline.MyParagraph!.Inlines[myindex - 1];
       else
       {
-         Paragraph? prevPar = GetPreviousParagraph(inline.myParagraph);
+         Paragraph? prevPar = GetPreviousParagraph(inline.MyParagraph);
          if (prevPar == null)
             return null!;
          else
          {
             if (prevPar.Inlines.Count > 0)
-               returnIED = prevPar.Inlines.Last();
+               returnIed = prevPar.Inlines.Last();
          }
             
       }
-      return returnIED;
+      return returnIed;
 
    }
 

@@ -85,7 +85,7 @@ public partial class FlowDocument
                {
                   int nextParIndex = Blocks.IndexOf(Selection.EndParagraph) + 1;
                   Paragraph nextPar = (Paragraph)Blocks[nextParIndex];
-                  int oldSE = Selection.End;
+                  int oldSe = Selection.End;
                   Selection.End = Math.Min(nextPar.StartInDoc + nextPar.BlockLength - 1, nextEnd);
                }
             }

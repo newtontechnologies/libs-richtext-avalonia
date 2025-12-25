@@ -18,8 +18,8 @@ internal static partial class HelperMethods
    internal static AvColor ColorFromHex(string hex) => AvColor.Parse(hex);
    internal static double TwipToPix(double unitTwip) => 96.0 / 1440D * unitTwip;
    internal static double PixToTwip(double unitPix) => 15D * unitPix;
-   internal static double EMUToPix(double unitTwip) => 96 / (double)914400 * unitTwip;
-   internal static double PixToEMU(double unitPix) => 914400 / (double)96 * unitPix;
+   internal static double EmuToPix(double unitTwip) => 96 / (double)914400 * unitTwip;
+   internal static double PixToEmu(double unitPix) => 914400 / (double)96 * unitPix;
    internal static double PointsToPixels(double pt) => pt * 96D / 72D;
    internal static double InchesToPixels(double inch) => inch * 96D;  
    internal static double PixelsToPoints(double px) => px * 72 / 96;
@@ -62,7 +62,7 @@ internal static partial class HelperMethods
 
       if (returnString != string.Empty) return returnString;
       //return hexColorRegex().Replace(hex, "") == "" ? ("#" + hex) : (isBackground ? "#FFFFFFFF" : "#FF000000"); // default white or black
-      return hexColorRegex().Replace(hex, "") == "" ? (hex) : (isBackground ? "#FFFFFFFF" : "#FF000000"); // default white or black
+      return HexColorRegex().Replace(hex, "") == "" ? (hex) : (isBackground ? "#FFFFFFFF" : "#FF000000"); // default white or black
 
    }
 
@@ -111,9 +111,9 @@ internal static partial class HelperMethods
 
    internal static SolidColorBrush FromOpenXmlColor(string openxmlhex)
    {
-      BrushConverter BConverter = new();
-      ImmutableSolidColorBrush? iSCB = (ImmutableSolidColorBrush)BConverter.ConvertFromString("#" + openxmlhex)!;
-      return new SolidColorBrush(iSCB.Color);
+      BrushConverter bConverter = new();
+      ImmutableSolidColorBrush? iScb = (ImmutableSolidColorBrush)bConverter.ConvertFromString("#" + openxmlhex)!;
+      return new SolidColorBrush(iScb.Color);
       
    }
 
@@ -145,7 +145,7 @@ internal static partial class HelperMethods
          return 1033; // Default to English (en-US)
    }
 
-   internal static bool IsCJKChar(char c) => GetLanguageForChar(c) is 2052 or 1041 or 1042 or 1028;
+   internal static bool IsCjkChar(char c) => GetLanguageForChar(c) is 2052 or 1041 or 1042 or 1028;
    [GeneratedRegex("[#0-9a-f]")]
-   private static partial Regex hexColorRegex();
+   private static partial Regex HexColorRegex();
 }

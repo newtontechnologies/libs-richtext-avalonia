@@ -23,7 +23,7 @@ public class Paragraph : Block
    private void Inlines_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
    {
       foreach (IEditable ied in Inlines)
-         ied.myParagraph = this;
+         ied.MyParagraph = this;
             
    }
 
@@ -32,43 +32,43 @@ public class Paragraph : Block
    
    //public string Text => string.Join("", Inlines.ToList().ConvertAll(ied => ied.InlineText));
 
-   private Thickness _BorderThickness = new Thickness(0);
-   public Thickness BorderThickness { get => _BorderThickness; set { _BorderThickness = value; NotifyPropertyChanged(nameof(BorderThickness)); } }
+   private Thickness _borderThickness = new Thickness(0);
+   public Thickness BorderThickness { get => _borderThickness; set { _borderThickness = value; NotifyPropertyChanged(nameof(BorderThickness)); } }
 
-   private SolidColorBrush _BorderBrush = new (Colors.Transparent);
-   public SolidColorBrush BorderBrush { get => _BorderBrush; set { _BorderBrush = value; NotifyPropertyChanged(nameof(BorderBrush)); } }
+   private SolidColorBrush _borderBrush = new (Colors.Transparent);
+   public SolidColorBrush BorderBrush { get => _borderBrush; set { _borderBrush = value; NotifyPropertyChanged(nameof(BorderBrush)); } }
 
-   private SolidColorBrush _Background = new (Colors.Transparent);
-   public SolidColorBrush Background { get => _Background; set { _Background = value; NotifyPropertyChanged(nameof(Background)); } }
+   private SolidColorBrush _background = new (Colors.Transparent);
+   public SolidColorBrush Background { get => _background; set { _background = value; NotifyPropertyChanged(nameof(Background)); } }
 
    //private FontFamily _FontFamily = new ("ＭＳ 明朝, Times New Roman");
-   private FontFamily _FontFamily = new ("Meiryo");
+   private FontFamily _fontFamily = new ("Meiryo");
    //private FontFamily _FontFamily = "Meiryo";
-   public FontFamily FontFamily { get => _FontFamily; set { _FontFamily = value; NotifyPropertyChanged(nameof(FontFamily)); } }
+   public FontFamily FontFamily { get => _fontFamily; set { _fontFamily = value; NotifyPropertyChanged(nameof(FontFamily)); } }
 
-   private double _FontSize = 16D;
-   public double FontSize { get => _FontSize; set { _FontSize = value; NotifyPropertyChanged(nameof(FontSize)); } }
+   private double _fontSize = 16D;
+   public double FontSize { get => _fontSize; set { _fontSize = value; NotifyPropertyChanged(nameof(FontSize)); } }
 
-   private double _LineHeight = 18.666D;  // fontsize normally
-   public double LineHeight { get => _LineHeight; set { _LineHeight = value; NotifyPropertyChanged(nameof(LineHeight)); CallRequestInlinesUpdate(); CallRequestTextLayoutInfoStart(); } }
+   private double _lineHeight = 18.666D;  // fontsize normally
+   public double LineHeight { get => _lineHeight; set { _lineHeight = value; NotifyPropertyChanged(nameof(LineHeight)); CallRequestInlinesUpdate(); CallRequestTextLayoutInfoStart(); } }
 
-   private double _LineSpacing = 0D;
-   public double LineSpacing { get => _LineSpacing; set { _LineSpacing = value; NotifyPropertyChanged(nameof(LineSpacing)); CallRequestInlinesUpdate(); CallRequestTextLayoutInfoStart(); } }
+   private double _lineSpacing = 0D;
+   public double LineSpacing { get => _lineSpacing; set { _lineSpacing = value; NotifyPropertyChanged(nameof(LineSpacing)); CallRequestInlinesUpdate(); CallRequestTextLayoutInfoStart(); } }
 
-   private FontWeight _FontWeight = FontWeight.Normal;
-   public FontWeight FontWeight { get => _FontWeight; set { _FontWeight = value; NotifyPropertyChanged(nameof(FontWeight)); } }
+   private FontWeight _fontWeight = FontWeight.Normal;
+   public FontWeight FontWeight { get => _fontWeight; set { _fontWeight = value; NotifyPropertyChanged(nameof(FontWeight)); } }
 
-   private FontStyle _FontStyle = FontStyle.Normal;
-   public FontStyle FontStyle{ get => _FontStyle; set { _FontStyle = value; NotifyPropertyChanged(nameof(FontStyle)); } }
+   private FontStyle _fontStyle = FontStyle.Normal;
+   public FontStyle FontStyle{ get => _fontStyle; set { _fontStyle = value; NotifyPropertyChanged(nameof(FontStyle)); } }
 
-   private TextAlignment _TextAlignment = TextAlignment.Left;
-   public TextAlignment TextAlignment { get => _TextAlignment; set { _TextAlignment = value; NotifyPropertyChanged(nameof(TextAlignment)); } }
+   private TextAlignment _textAlignment = TextAlignment.Left;
+   public TextAlignment TextAlignment { get => _textAlignment; set { _textAlignment = value; NotifyPropertyChanged(nameof(TextAlignment)); } }
 
    //private SolidColorBrush _SelectionForegroundBrush = new (Colors.Black);  // in Avalonia > 11.1, setting this alters the selection font for some reason
    //public SolidColorBrush SelectionForegroundBrush { get => _SelectionForegroundBrush; set { _SelectionForegroundBrush = value; NotifyPropertyChanged(nameof(SelectionForegroundBrush)); } }
 
-   private SolidColorBrush _SelectionBrush = LightBlueBrush;
-   public SolidColorBrush SelectionBrush { get => _SelectionBrush; set { _SelectionBrush = value; NotifyPropertyChanged(nameof(SelectionBrush)); } }
+   private SolidColorBrush _selectionBrush = LightBlueBrush;
+   public SolidColorBrush SelectionBrush { get => _selectionBrush; set { _selectionBrush = value; NotifyPropertyChanged(nameof(SelectionBrush)); } }
    internal static SolidColorBrush LightBlueBrush = new(Colors.LightBlue);
 
    internal double DistanceSelectionEndFromLeft = 0;
@@ -86,20 +86,20 @@ public class Paragraph : Block
    internal bool IsStartAtLastLine = false;
    internal bool IsEndAtLastLine = false;
 
-   private bool _RequestInlinesUpdate;
-   internal bool RequestInlinesUpdate { get => _RequestInlinesUpdate; set { _RequestInlinesUpdate = value; NotifyPropertyChanged(nameof(RequestInlinesUpdate)); } }
+   private bool _requestInlinesUpdate;
+   internal bool RequestInlinesUpdate { get => _requestInlinesUpdate; set { _requestInlinesUpdate = value; NotifyPropertyChanged(nameof(RequestInlinesUpdate)); } }
 
-   private bool _RequestInvalidateVisual;
-   internal bool RequestInvalidateVisual { get => _RequestInvalidateVisual; set { _RequestInvalidateVisual = value; NotifyPropertyChanged(nameof(RequestInvalidateVisual)); } }
+   private bool _requestInvalidateVisual;
+   internal bool RequestInvalidateVisual { get => _requestInvalidateVisual; set { _requestInvalidateVisual = value; NotifyPropertyChanged(nameof(RequestInvalidateVisual)); } }
 
-   private bool _RequestTextLayoutInfoStart;
-   internal bool RequestTextLayoutInfoStart { get => _RequestTextLayoutInfoStart; set { _RequestTextLayoutInfoStart = value; NotifyPropertyChanged(nameof(RequestTextLayoutInfoStart)); } }
+   private bool _requestTextLayoutInfoStart;
+   internal bool RequestTextLayoutInfoStart { get => _requestTextLayoutInfoStart; set { _requestTextLayoutInfoStart = value; NotifyPropertyChanged(nameof(RequestTextLayoutInfoStart)); } }
 
-   private bool _RequestTextLayoutInfoEnd;
-   internal bool RequestTextLayoutInfoEnd { get => _RequestTextLayoutInfoEnd; set { _RequestTextLayoutInfoEnd = value; NotifyPropertyChanged(nameof(RequestTextLayoutInfoEnd)); } }
+   private bool _requestTextLayoutInfoEnd;
+   internal bool RequestTextLayoutInfoEnd { get => _requestTextLayoutInfoEnd; set { _requestTextLayoutInfoEnd = value; NotifyPropertyChanged(nameof(RequestTextLayoutInfoEnd)); } }
 
-   private bool _RequestTextBoxFocus;
-   public bool RequestTextBoxFocus { get => _RequestTextBoxFocus; set { _RequestTextBoxFocus = value; NotifyPropertyChanged(nameof(RequestTextBoxFocus)); } }
+   private bool _requestTextBoxFocus;
+   public bool RequestTextBoxFocus { get => _requestTextBoxFocus; set { _requestTextBoxFocus = value; NotifyPropertyChanged(nameof(RequestTextBoxFocus)); } }
 
    //private int _RequestRectOfCharacterIndex;
    //public int RequestRectOfCharacterIndex { get => _RequestRectOfCharacterIndex; set { _RequestRectOfCharacterIndex = value; NotifyPropertyChanged(nameof(RequestRectOfCharacterIndex)); } }
@@ -122,14 +122,14 @@ public class Paragraph : Block
       }
    }
 
-   internal void UpdateUIContainersSelected()
+   internal void UpdateUiContainersSelected()
    {
       if (this.Inlines != null)
       {
 
          IEditable? startInline = Inlines.FirstOrDefault(il => il.IsStartInline);
          IEditable? endInline = Inlines.FirstOrDefault(il => il.IsEndInline);
-         foreach (EditableInlineUIContainer iuc  in this.Inlines.OfType<EditableInlineUIContainer>())
+         foreach (EditableInlineUiContainer iuc  in this.Inlines.OfType<EditableInlineUiContainer>())
          {
             int stidx = startInline == null ? -1 : this.Inlines.IndexOf(startInline);
             int edidx = endInline == null ? Int32.MaxValue : this.Inlines.IndexOf(endInline);

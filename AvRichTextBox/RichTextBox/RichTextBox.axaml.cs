@@ -19,15 +19,15 @@ namespace AvRichTextBox;
 
 public partial class RichTextBox : UserControl
 {
-   internal FlowDocument FlowDoc => rtbVM.FlowDoc;
-   private RichTextBoxViewModel rtbVM { get; set; } = new();
+   internal FlowDocument FlowDoc => RtbVm.FlowDoc;
+   private RichTextBoxViewModel RtbVm { get; set; } = new();
 
    private void ToggleDebuggerPanel (bool visible) { RunDebugPanel.IsVisible = visible; }
 
   
    public void ScrollToSelection()
    {
-      rtbVM.RTBScrollOffset = rtbVM.RTBScrollOffset.WithY(FlowDoc.Selection.StartRect.Y - 50);
+      RtbVm.RTBScrollOffset = RtbVm.RTBScrollOffset.WithY(FlowDoc.Selection.StartRect.Y - 50);
       
    }
 
@@ -39,9 +39,9 @@ public partial class RichTextBox : UserControl
 
       FlowDocument = new FlowDocument();
 
-      rtbVM.FlowDocChanged += RtbVM_FlowDocChanged;
+      RtbVm.FlowDocChanged += RtbVM_FlowDocChanged;
 
-      MainDP.DataContext = rtbVM;  // bind to child DockPanel, not the UserControl itself
+      MainDP.DataContext = RtbVm;  // bind to child DockPanel, not the UserControl itself
           
 
       this.Loaded += RichTextBox_Loaded;
@@ -50,15 +50,15 @@ public partial class RichTextBox : UserControl
       
       FlowDocSV.SizeChanged += FlowDocSV_SizeChanged;
 
-      AdornerLayer.SetAdorner(DocIC, _CaretRect);
+      AdornerLayer.SetAdorner(DocIC, _caretRect);
 
       InitializeBlinkAnimation();
 
-      blinkAnimation!.RunAsync(_CaretRect);
-      _CaretRect.Bind(IsVisibleProperty, new Binding("CaretVisible"));
-      _CaretRect.Bind(MarginProperty, new Binding("CaretMargin"));
-      _CaretRect.Bind(HeightProperty, new Binding("CaretHeight"));
-      _CaretRect.DataContext = rtbVM;
+      _blinkAnimation!.RunAsync(_caretRect);
+      _caretRect.Bind(IsVisibleProperty, new Binding("CaretVisible"));
+      _caretRect.Bind(MarginProperty, new Binding("CaretMargin"));
+      _caretRect.Bind(HeightProperty, new Binding("CaretHeight"));
+      _caretRect.DataContext = RtbVm;
 
       this.TextInput += RichTextBox_TextInput;
 
@@ -79,15 +79,15 @@ public partial class RichTextBox : UserControl
       if (ShowDebuggerPanelInDebugMode)
       {
 #if DEBUG
-         rtbVM.RunDebuggerVisible = ShowDebuggerPanelInDebugMode;
+         RtbVm.RunDebuggerVisible = ShowDebuggerPanelInDebugMode;
          //RunDebugger.DataContext = FlowDoc;  // binding set in Xaml
-         this.Width = this.Width + (rtbVM.RunDebuggerVisible ? 400 : 0);
+         this.Width = this.Width + (RtbVm.RunDebuggerVisible ? 400 : 0);
 #else
       RunDebugger.DataContext = null;
 #endif
       }
 
-      FlowDoc.ShowDebugger = rtbVM.RunDebuggerVisible;
+      FlowDoc.ShowDebugger = RtbVm.RunDebuggerVisible;
 
       this.Focus();
 
@@ -100,7 +100,7 @@ public partial class RichTextBox : UserControl
 
    private void RtbVM_FlowDocChanged()
    {
-      DocIC.DataContext = rtbVM.FlowDoc;
+      DocIC.DataContext = RtbVm.FlowDoc;
       UpdateAllInlines();
    }
 
@@ -111,15 +111,15 @@ public partial class RichTextBox : UserControl
       {
          if (FlowDoc != null)
          {
-            FlowDoc.ScrollInDirection -= rtbVM.FlowDoc_ScrollInDirection;
-            FlowDoc.UpdateRTBCaret -= rtbVM.FlowDoc_UpdateRTBCaret;
+            FlowDoc.ScrollInDirection -= RtbVm.FlowDoc_ScrollInDirection;
+            FlowDoc.UpdateRtbCaret -= RtbVm.FlowDoc_UpdateRTBCaret;
          }
 
-         rtbVM.FlowDoc = FlowDocument;
+         RtbVm.FlowDoc = FlowDocument;
 
-         rtbVM.FlowDoc.ScrollInDirection += rtbVM.FlowDoc_ScrollInDirection;
-         rtbVM.FlowDoc.UpdateRTBCaret += rtbVM.FlowDoc_UpdateRTBCaret;
-         rtbVM.FlowDoc.InitializeDocument();
+         RtbVm.FlowDoc.ScrollInDirection += RtbVm.FlowDoc_ScrollInDirection;
+         RtbVm.FlowDoc.UpdateRtbCaret += RtbVm.FlowDoc_UpdateRTBCaret;
+         RtbVm.FlowDoc.InitializeDocument();
          CreateClient();
 
       }
@@ -153,24 +153,24 @@ public partial class RichTextBox : UserControl
       InputMethod.SetIsInputMethodEnabled(this, true);
       this.TextInputMethodClientRequested += RichTextBox_TextInputMethodClientRequested;
 
-      client = new RichTextBoxTextInputClient(this);
+      _client = new RichTextBoxTextInputClient(this);
       //Debug.WriteLine("created new client)");
 
       this.Focus();
 
    }
 
-   RichTextBoxTextInputClient client = null!;
+   RichTextBoxTextInputClient _client = null!;
 
    private void RichTextBox_TextInputMethodClientRequested(object? sender, TextInputMethodClientRequestedEventArgs e)
    {
      
       if (e.GetType() == typeof(TextInputMethodClientRequestedEventArgs))
       {
-         if (client == null)
-            client = new RichTextBoxTextInputClient(this);
+         if (_client == null)
+            _client = new RichTextBoxTextInputClient(this);
         
-         e.Client = client;
+         e.Client = _client;
 
          //Debug.WriteLine("e.Client requested = " + e.Client.Selection.ToString());
 
@@ -197,14 +197,14 @@ public partial class RichTextBox : UserControl
 
       if (!string.IsNullOrEmpty(_preeditText))
       {
-         double cX = _CaretRect!.Margin.Left - 2;
-         double cY = _CaretRect!.Margin.Top - 2;
+         double cX = _caretRect!.Margin.Left - 2;
+         double cY = _caretRect!.Margin.Top - 2;
 
          PreeditOverlay.Text = _preeditText;
          PreeditOverlay.Margin = new Thickness(cX, cY, 0, 0);
          PreeditOverlay.IsVisible = true;
-         CaretPosition = new Point(cX, cY - rtbVM.RTBScrollOffset.Y);
-         client.UpdateCaretPosition();
+         CaretPosition = new Point(cX, cY - RtbVm.RTBScrollOffset.Y);
+         _client.UpdateCaretPosition();
 
       }
       else
@@ -213,7 +213,7 @@ public partial class RichTextBox : UserControl
       }
    }
    
-   private readonly Rectangle? _CaretRect = new()
+   private readonly Rectangle? _caretRect = new()
    {
       StrokeThickness = 2,
       Stroke = Brushes.Black,
@@ -226,9 +226,9 @@ public partial class RichTextBox : UserControl
    };
 
 
-   public void InvalidateCaret() { rtbVM.CaretVisible = true;  }
+   public void InvalidateCaret() { RtbVm.CaretVisible = true;  }
    public void NewDocument() { FlowDoc.NewDocument(); }
-   public void CloseDocument() { FlowDoc.NewDocument();  rtbVM.RTBScrollOffset = new Vector(0, 0);  }
+   public void CloseDocument() { FlowDoc.NewDocument();  RtbVm.RTBScrollOffset = new Vector(0, 0);  }
    //Load/save
 	public void LoadRtf(string rtf) { FlowDoc.LoadRtf(rtf); }
    public void LoadRtfDoc(string fileName) { FlowDoc.LoadRtfFromFile(fileName);  }
@@ -266,17 +266,17 @@ public partial class RichTextBox : UserControl
             break;
       }
 
-      double distanceFromTop = currentY - rtbVM.RTBScrollOffset.Y;
+      double distanceFromTop = currentY - RtbVm.RTBScrollOffset.Y;
       double distanceFromLeft = FlowDoc.Selection!.StartRect!.X + FlowDocSV.Margin.Left;
-      double newScrollY = rtbVM.RTBScrollOffset.Y + FlowDocSV.Bounds.Height * direction;
-      rtbVM.RTBScrollOffset = rtbVM.RTBScrollOffset.WithY(newScrollY);
+      double newScrollY = RtbVm.RTBScrollOffset.Y + FlowDocSV.Bounds.Height * direction;
+      RtbVm.RTBScrollOffset = RtbVm.RTBScrollOffset.WithY(newScrollY);
       double newCaretY = newScrollY + distanceFromTop;
       //Debug.WriteLine("\nnewCaretY = " + newCaretY + "\nnewscrollY= " + newScrollY + "\ndistanceTop=" + distanceFromTop);
       //EditableParagraph? thisEP = DocIC.GetVisualDescendants().OfType<EditableParagraph>().Where(ep => ep.TranslatePoint(ep.Bounds.Position, DocIC)!.Value.Y <= newCaretY).LastOrDefault();
-      EditableParagraph? thisEP = DocIC.GetVisualDescendants().OfType<EditableParagraph>().Where(ep => ep.TranslatePoint(ep.Bounds.Position, DocIC)!.Value.Y <= newScrollY).LastOrDefault();
+      EditableParagraph? thisEp = DocIC.GetVisualDescendants().OfType<EditableParagraph>().Where(ep => ep.TranslatePoint(ep.Bounds.Position, DocIC)!.Value.Y <= newScrollY).LastOrDefault();
       
 
-      if (thisEP == null)
+      if (thisEp == null)
       {
          if (direction == -1)
          {
@@ -295,9 +295,9 @@ public partial class RichTextBox : UserControl
       }
       else
       {
-         double relYInEP = newCaretY - thisEP!.TranslatePoint(thisEP!.Bounds.Position, DocIC)!.Value.Y + 18;
-         TextHitTestResult tres = thisEP.TextLayout.HitTestPoint(new Point(distanceFromLeft, relYInEP));
-         int newCharIndexInDoc = ((Paragraph)thisEP.DataContext!).StartInDoc + tres.CharacterHit.FirstCharacterIndex;
+         double relYInEp = newCaretY - thisEp!.TranslatePoint(thisEp!.Bounds.Position, DocIC)!.Value.Y + 18;
+         TextHitTestResult tres = thisEp.TextLayout.HitTestPoint(new Point(distanceFromLeft, relYInEp));
+         int newCharIndexInDoc = ((Paragraph)thisEp.DataContext!).StartInDoc + tres.CharacterHit.FirstCharacterIndex;
          FlowDoc.MovePageSelection(direction, extend, newCharIndexInDoc + (int)(FlowDocSV.Bounds.Height / 2));
       }
 
@@ -306,15 +306,15 @@ public partial class RichTextBox : UserControl
 
    private void FlowDocSV_SizeChanged(object? sender, SizeChangedEventArgs e)
    {
-      rtbVM.ScrollViewerHeight = e.NewSize.Height;
+      RtbVm.ScrollViewerHeight = e.NewSize.Height;
 
    }
      
-   private Animation blinkAnimation;
+   private Animation _blinkAnimation;
 
    private void InitializeBlinkAnimation()
    {
-      blinkAnimation = new Animation()
+      _blinkAnimation = new Animation()
       {
          Duration = TimeSpan.FromSeconds(0.85),
          FillMode = FillMode.Forward,
@@ -331,7 +331,7 @@ public partial class RichTextBox : UserControl
 
    private void ScrollViewer_ScrollChanged(object? sender, Avalonia.Controls.ScrollChangedEventArgs e)
    {
-      rtbVM.RTBScrollOffset = FlowDocSV.Offset;
+      RtbVm.RTBScrollOffset = FlowDocSV.Offset;
 
    }
 

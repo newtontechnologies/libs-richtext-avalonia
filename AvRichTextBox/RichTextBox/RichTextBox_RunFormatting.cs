@@ -57,7 +57,7 @@ public partial class RichTextBox
    {
       if (IsReadOnly) return;
 
-      bool TextPasted = false;
+      bool textPasted = false;
       int originalSelectionStart = FlowDoc.Selection.Start;
       int newSelPoint = originalSelectionStart;
 
@@ -78,7 +78,7 @@ public partial class RichTextBox
 
             newSelPoint = Math.Min(newSelPoint + addedchars, FlowDoc.DocEndPoint - 1);
 
-            TextPasted = true;
+            textPasted = true;
          }
       }
       else if (formats.Contains("Text"))
@@ -92,11 +92,11 @@ public partial class RichTextBox
 
             newSelPoint = Math.Min(newSelPoint + pasteText.Length, FlowDoc.DocEndPoint - 1);
 
-            TextPasted = true;
+            textPasted = true;
          }
       }
       
-      if (TextPasted)
+      if (textPasted)
       {
          this.DocIC.UpdateLayout();
          await Task.Delay(100); //necessary for following operations

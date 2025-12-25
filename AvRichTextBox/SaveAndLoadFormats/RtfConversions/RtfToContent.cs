@@ -176,8 +176,8 @@ internal static partial class RtfConversions
          
          else if (domelm is RTFDomImage rtfImage)
          {
-            EditableInlineUIContainer eIUC = new(null!);
-            eIUC.FontFamily = "Image"; //???
+            EditableInlineUiContainer eIuc = new(null!);
+            eIuc.FontFamily = "Image"; //???
 
             Avalonia.Controls.Image img = new()
             {
@@ -188,8 +188,8 @@ internal static partial class RtfConversions
 
             MemoryStream memStream = new(rtfImage.Data) { Position = 0 };
             img.Source = new Bitmap(memStream);
-            eIUC.Child = img;
-            returnList.Add(eIUC);
+            eIuc.Child = img;
+            returnList.Add(eIuc);
          }
 
          else if (domelm is RTFDomText rtftext2)

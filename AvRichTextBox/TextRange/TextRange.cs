@@ -18,10 +18,10 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    public event PropertyChangedEventHandler? PropertyChanged;
    private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
-   internal delegate void Start_ChangedHandler(TextRange sender, int newStart);
-   internal event Start_ChangedHandler? Start_Changed;
-   internal delegate void End_ChangedHandler(TextRange sender, int newEnd);
-   internal event End_ChangedHandler? End_Changed;
+   internal delegate void StartChangedHandler(TextRange sender, int newStart);
+   internal event StartChangedHandler? StartChanged;
+   internal delegate void EndChangedHandler(TextRange sender, int newEnd);
+   internal event EndChangedHandler? EndChanged;
 
    public override string ToString() => this.Start + " → " + this.End;
 
@@ -31,18 +31,18 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
       this.Start = start;
       this.End = end;
-      myFlowDoc = flowdoc;
-      myFlowDoc.TextRanges.Add(this);
+      MyFlowDoc = flowdoc;
+      MyFlowDoc.TextRanges.Add(this);
 
    }
 
-   internal FlowDocument myFlowDoc;
+   internal FlowDocument MyFlowDoc;
    public int Length  => End - Start;
-   private int _Start;
-   public int Start { get => _Start; set { if (_Start != value) { _Start = value;  Start_Changed?.Invoke(this, value); NotifyPropertyChanged(nameof(Start)); } } }
+   private int _start;
+   public int Start { get => _start; set { if (_start != value) { _start = value;  StartChanged?.Invoke(this, value); NotifyPropertyChanged(nameof(Start)); } } }
       
-   private int _End;
-   public int End { get => _End; set { if (_End != value) { _End = value; End_Changed?.Invoke(this, value); NotifyPropertyChanged(nameof(End)); } } }
+   private int _end;
+   public int End { get => _end; set { if (_end != value) { _end = value; EndChanged?.Invoke(this, value); NotifyPropertyChanged(nameof(End)); } } }
 
    internal void UpdateStart() { NotifyPropertyChanged(nameof(Start)); }
    internal void UpdateEnd() { NotifyPropertyChanged(nameof(End)); }
@@ -88,7 +88,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
             startInline = startPar.Inlines.LastOrDefault(ied => startPar.StartInDoc + ied.TextPositionOfInlineInParagraph < Start)!;
             IEditable startInlineUpToLineBreak = startPar.Inlines.LastOrDefault(ied => !ied.IsLineBreak && startPar.StartInDoc + ied.TextPositionOfInlineInParagraph < Start)!;
             if (startInline.IsLineBreak)
-               startInline = myFlowDoc.GetNextInline(startInline) ?? startInline;
+               startInline = MyFlowDoc.GetNextInline(startInline) ?? startInline;
             IsAtLineBreak = startInline != startInlineUpToLineBreak;
          }
       }
@@ -117,13 +117,13 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
    public Paragraph? GetStartPar()
    {
-      Paragraph? startPar = myFlowDoc.Blocks.LastOrDefault(b => b.IsParagraph && (b.StartInDoc <= Start))! as Paragraph;
+      Paragraph? startPar = MyFlowDoc.Blocks.LastOrDefault(b => b.IsParagraph && (b.StartInDoc <= Start))! as Paragraph;
 
       if (startPar != null)
       {
          //Check if start at end of last paragraph (cannot span from end of a paragraph)
-         if (startPar != myFlowDoc.Blocks.Where(b => b.IsParagraph).Last() && startPar!.EndInDoc == Start)
-            startPar = myFlowDoc.Blocks.FirstOrDefault(b => b.IsParagraph && myFlowDoc.Blocks.IndexOf(b) > myFlowDoc.Blocks.IndexOf(startPar))! as Paragraph;
+         if (startPar != MyFlowDoc.Blocks.Where(b => b.IsParagraph).Last() && startPar!.EndInDoc == Start)
+            startPar = MyFlowDoc.Blocks.FirstOrDefault(b => b.IsParagraph && MyFlowDoc.Blocks.IndexOf(b) > MyFlowDoc.Blocks.IndexOf(startPar))! as Paragraph;
       }
 
       return startPar;
@@ -132,25 +132,25 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
    public Paragraph? GetEndPar()
    {
-      return myFlowDoc.Blocks.LastOrDefault(b => b.IsParagraph && b.StartInDoc < End)! as Paragraph;  // less than to keep within emd of paragraph
+      return MyFlowDoc.Blocks.LastOrDefault(b => b.IsParagraph && b.StartInDoc < End)! as Paragraph;  // less than to keep within emd of paragraph
 
    }
 
    public object? GetFormatting(AvaloniaProperty avProp)
    {
       object? formatting = null!;
-      if (myFlowDoc == null) return null!;
+      if (MyFlowDoc == null) return null!;
       IEditable currentInline = GetStartInline();
       if (currentInline != null)
-         formatting = myFlowDoc.GetFormattingInline(avProp, currentInline);
+         formatting = MyFlowDoc.GetFormattingInline(avProp, currentInline);
       
       return formatting;
    }
 
-   bool isFormatting = false;
+   bool _isFormatting = false;
    public void ApplyFormatting(AvaloniaProperty avProp, object value)
    {
-      if (myFlowDoc == null) return;
+      if (MyFlowDoc == null) return;
       if (Length < 1) return;
 
       //try
@@ -160,7 +160,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
       //catch (Exception ex) { Debug.WriteLine("exception, length = " + this.Length + " :::start = " + this.Start + " ::: end= " + this.End + " :::"  + ex.Message); }
       if (this.Text == "") return;
 
-      myFlowDoc.ApplyFormattingRange(avProp, value, this);
+      MyFlowDoc.ApplyFormattingRange(avProp, value, this);
 
       BiasForwardStart = false;
       BiasForwardEnd = false;
@@ -169,14 +169,14 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
    internal string GetText()
    {
-      if (myFlowDoc == null) return "";
-      return myFlowDoc.GetText(this);
+      if (MyFlowDoc == null) return "";
+      return MyFlowDoc.GetText(this);
    }
  
    public string Text
    {
       get => GetText();
-      set => myFlowDoc.SetRangeToText(this, value);
+      set => MyFlowDoc.SetRangeToText(this, value);
    }
 
    public void Dispose()
@@ -197,11 +197,11 @@ public class TextRange : INotifyPropertyChanged, IDisposable
          StartParagraph = null!;
          EndParagraph = null!;
 
-         Start_Changed = null;
-         End_Changed = null;
+         StartChanged = null;
+         EndChanged = null;
          this.Start = 0; this.End = 0;
-         myFlowDoc.TextRanges.Remove(this);
-         myFlowDoc = null!;
+         MyFlowDoc.TextRanges.Remove(this);
+         MyFlowDoc = null!;
 
       }
       _disposed = true;

@@ -13,20 +13,20 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
    public event PropertyChangedEventHandler? PropertyChanged;
    private void NotifyPropertyChanged([CallerMemberName] String propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
-   public delegate void FlowDocChanged_Handler();
-   internal event FlowDocChanged_Handler? FlowDocChanged;
+   public delegate void FlowDocChangedHandler();
+   internal event FlowDocChangedHandler? FlowDocChanged;
       
-   private Vector _RTBScrollOffset = new (0, 0);
-   public Vector RTBScrollOffset { get => _RTBScrollOffset; set { if (_RTBScrollOffset != value) _RTBScrollOffset = value; NotifyPropertyChanged(nameof(RTBScrollOffset)); } }
+   private Vector _rtbScrollOffset = new (0, 0);
+   public Vector RTBScrollOffset { get => _rtbScrollOffset; set { if (_rtbScrollOffset != value) _rtbScrollOffset = value; NotifyPropertyChanged(nameof(RTBScrollOffset)); } }
 
    public double MinWidth => RunDebuggerVisible ? 500 : 100;
 
-   private FlowDocument _FlowDoc = null!;
+   private FlowDocument _flowDoc = null!;
    //public FlowDocument FlowDoc { get => _FlowDoc;  set { _FlowDoc = value; NotifyPropertyChanged(nameof(FlowDoc));  } }
-   public FlowDocument FlowDoc { get => _FlowDoc;  set { _FlowDoc = value; NotifyPropertyChanged(nameof(FlowDoc)); FlowDocChanged?.Invoke();  } }
+   public FlowDocument FlowDoc { get => _flowDoc;  set { _flowDoc = value; NotifyPropertyChanged(nameof(FlowDoc)); FlowDocChanged?.Invoke();  } }
 
-   private bool _RunDebuggerVisible = false;
-   public bool RunDebuggerVisible { get => _RunDebuggerVisible; set { _RunDebuggerVisible = value; NotifyPropertyChanged(nameof(RunDebuggerVisible)); } }
+   private bool _runDebuggerVisible = false;
+   public bool RunDebuggerVisible { get => _runDebuggerVisible; set { _runDebuggerVisible = value; NotifyPropertyChanged(nameof(RunDebuggerVisible)); } }
 
    public RichTextBoxViewModel()
    {
@@ -41,25 +41,25 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
 
    internal double ScrollViewerHeight = 10;
    
-   private double _CaretHeight = 5;
-   public double CaretHeight { get => _CaretHeight; set { _CaretHeight = value; NotifyPropertyChanged(nameof(CaretHeight)); } }
+   private double _caretHeight = 5;
+   public double CaretHeight { get => _caretHeight; set { _caretHeight = value; NotifyPropertyChanged(nameof(CaretHeight)); } }
 
-   private Thickness _CaretMargin = new (0);
-   public Thickness CaretMargin { get => _CaretMargin; set { _CaretMargin = value; NotifyPropertyChanged(nameof(CaretMargin)); } }
+   private Thickness _caretMargin = new (0);
+   public Thickness CaretMargin { get => _caretMargin; set { _caretMargin = value; NotifyPropertyChanged(nameof(CaretMargin)); } }
 
-   private bool _CaretVisible = true;
-   public bool CaretVisible { get => _CaretVisible; set { _CaretVisible = value; NotifyPropertyChanged(nameof(CaretVisible)); } }
+   private bool _caretVisible = true;
+   public bool CaretVisible { get => _caretVisible; set { _caretVisible = value; NotifyPropertyChanged(nameof(CaretVisible)); } }
 
    
    // FOR VISUAL CARET TESTING////////////////////////////////////////
-   private double _LineHeightRectHeight = 5;
-   public double LineHeightRectHeight { get => _LineHeightRectHeight; set { _LineHeightRectHeight = value; NotifyPropertyChanged(nameof(LineHeightRectHeight)); } }
-   private Thickness _LineHeightRectMargin = new(0);
-   public Thickness LineHeightRectMargin { get => _LineHeightRectMargin; set { _LineHeightRectMargin = value; NotifyPropertyChanged(nameof(LineHeightRectMargin)); } }
-   private double _BaseLineRectHeight = 5;
-   public double BaseLineRectHeight { get => _BaseLineRectHeight; set { _BaseLineRectHeight = value; NotifyPropertyChanged(nameof(BaseLineRectHeight)); } }
-   private Thickness _BaseLineRectMargin = new(0);
-   public Thickness BaseLineRectMargin { get => _BaseLineRectMargin; set { _BaseLineRectMargin = value; NotifyPropertyChanged(nameof(BaseLineRectMargin)); } }
+   private double _lineHeightRectHeight = 5;
+   public double LineHeightRectHeight { get => _lineHeightRectHeight; set { _lineHeightRectHeight = value; NotifyPropertyChanged(nameof(LineHeightRectHeight)); } }
+   private Thickness _lineHeightRectMargin = new(0);
+   public Thickness LineHeightRectMargin { get => _lineHeightRectMargin; set { _lineHeightRectMargin = value; NotifyPropertyChanged(nameof(LineHeightRectMargin)); } }
+   private double _baseLineRectHeight = 5;
+   public double BaseLineRectHeight { get => _baseLineRectHeight; set { _baseLineRectHeight = value; NotifyPropertyChanged(nameof(BaseLineRectHeight)); } }
+   private Thickness _baseLineRectMargin = new(0);
+   public Thickness BaseLineRectMargin { get => _baseLineRectMargin; set { _baseLineRectMargin = value; NotifyPropertyChanged(nameof(BaseLineRectMargin)); } }
    //////////////////////////////////////////////////////////////////
 
 

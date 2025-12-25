@@ -12,16 +12,16 @@ namespace AvRichTextBox;
 
 internal static partial class WordConversions
 {
-   private static MainDocumentPart? mainPart;
+   private static MainDocumentPart? _mainPart;
 
    internal static void SaveWordDoc(string saveWordFileName, FlowDocument fdoc)
    {
       try
       {
-         using var WPDoc = WordprocessingDocument.Create(saveWordFileName, WordprocessingDocumentType.Document);
+         using var wpDoc = WordprocessingDocument.Create(saveWordFileName, WordprocessingDocumentType.Document);
 
-         mainPart = WPDoc.AddMainDocumentPart();
-         mainPart.Document = new Document();
+         _mainPart = wpDoc.AddMainDocumentPart();
+         _mainPart.Document = new Document();
 
 
          //Set page and margin size according to Client
@@ -44,7 +44,7 @@ internal static partial class WordConversions
          body.Append(sectp);
 
 
-         mainPart.Document.AppendChild(body);
+         _mainPart.Document.AppendChild(body);
 
          foreach (Block b in fdoc.Blocks)
          {
@@ -66,7 +66,7 @@ internal static partial class WordConversions
             }
          }
 
-         WPDoc.Save();
+         wpDoc.Save();
 
 
       }

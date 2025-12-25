@@ -154,8 +154,8 @@ internal static partial class WordConversions
                         var extelm = inelm.Elements().Where(ce => (ce.LocalName ?? "") == "extent").ElementAtOrDefault(0);
                         if (extelm != null)
                         {
-                           img.Width = EMUToPix(Convert.ToDouble(extelm.GetAttributes().Where(gat => gat.LocalName == "cx").FirstOrDefault().Value));
-                           img.Height = EMUToPix(Convert.ToDouble(extelm.GetAttributes().Where(gat => gat.LocalName == "cy").FirstOrDefault().Value));
+                           img.Width = EmuToPix(Convert.ToDouble(extelm.GetAttributes().Where(gat => gat.LocalName == "cx").FirstOrDefault().Value));
+                           img.Height = EmuToPix(Convert.ToDouble(extelm.GetAttributes().Where(gat => gat.LocalName == "cy").FirstOrDefault().Value));
                         }
                         //MessageBox.Show("extelmWidth=" + img.Width.ToString() + ":::extELMHeight=" + img.Height.ToString());
 
@@ -170,10 +170,10 @@ internal static partial class WordConversions
                            var spPr = picelm.Elements().Where(ce => (ce.LocalName ?? "") == "spPr").ElementAtOrDefault(0);
                            var xfrm = spPr?.Elements().Where(ce => (ce.LocalName ?? "") == "xfrm").ElementAtOrDefault(0);
                            var ext = xfrm?.Elements().Where(ce => (ce.LocalName ?? "") == "ext").ElementAtOrDefault(0);
-                           img.Width = EMUToPix(Convert.ToDouble(ext?.GetAttributes()[0].Value));
-                           img.Height = EMUToPix(Convert.ToDouble(ext?.GetAttributes()[1].Value));
+                           img.Width = EmuToPix(Convert.ToDouble(ext?.GetAttributes()[0].Value));
+                           img.Height = EmuToPix(Convert.ToDouble(ext?.GetAttributes()[1].Value));
 
-                           ImagePart imgp = (ImagePart)mainDocPart!.GetPartById(rIdno!);
+                           ImagePart imgp = (ImagePart)MainDocPart!.GetPartById(rIdno!);
                            contentType = imgp.ContentType.ToString();
                            imgStream = imgp.GetStream();
 
@@ -183,7 +183,7 @@ internal static partial class WordConversions
                         if (chartelm != null)
                         {
                            rIdno = chartelm.GetAttributes().Where(gat => gat.LocalName == "id").FirstOrDefault().Value ?? "0";
-                           ChartPart chp = (ChartPart)mainDocPart!.GetPartById(rIdno);
+                           ChartPart chp = (ChartPart)MainDocPart!.GetPartById(rIdno);
                            contentType = chp.ContentType.ToString();
                            imgStream = chp.GetStream();
                         }
@@ -223,7 +223,7 @@ internal static partial class WordConversions
                         img.IsVisible = true;
                         img.Source = bmg;
 
-                        iline = new EditableInlineUIContainer(img);
+                        iline = new EditableInlineUiContainer(img);
                      }
 
                   }
@@ -243,8 +243,8 @@ internal static partial class WordConversions
                         {
                            case "u":
 
-                              TextDecoration ProtectedTextDecoration = new() { Location = TextDecorationLocation.Underline };
-                              thisRun.TextDecorations = [ ProtectedTextDecoration ];
+                              TextDecoration protectedTextDecoration = new() { Location = TextDecorationLocation.Underline };
+                              thisRun.TextDecorations = [ protectedTextDecoration ];
                               break;
 
                            //case "i": ((EditableRun)iline).FontStyle = FontStyle.Italic; break;
@@ -308,8 +308,8 @@ internal static partial class WordConversions
 
                            case "highlight":
                                                             
-                              BrushConverter? Bconverter = new();
-                              thisRun.Background = (ImmutableSolidColorBrush)Bconverter.ConvertFromString(WordColorValueToHexString(rprsection.GetAttributes()[0].Value ?? "#00000000", true))!;
+                              BrushConverter? bconverter = new();
+                              thisRun.Background = (ImmutableSolidColorBrush)bconverter.ConvertFromString(WordColorValueToHexString(rprsection.GetAttributes()[0].Value ?? "#00000000", true))!;
                               //thisRun.Background = Brushes.Transparent; debugging
                               break;
 
@@ -323,7 +323,7 @@ internal static partial class WordConversions
 
                               try
                               {
-                                 BrushConverter? BConverter = new();
+                                 BrushConverter? bConverter = new();
                                  string? brushString = "#FF000000"!;
                                  string colorValString = rprsection.GetAttributes()[0].Value!;
                                  brushString = colorValString switch
@@ -332,7 +332,7 @@ internal static partial class WordConversions
                                     _ => WordColorValueToHexString(rprsection.GetAttributes()[0].Value!, false),
                                  };
                                  if (!brushString.StartsWith('#')) brushString = "#" + brushString;
-                                 thisRun.Foreground = (ImmutableSolidColorBrush)BConverter.ConvertFromString(brushString)!;
+                                 thisRun.Foreground = (ImmutableSolidColorBrush)bConverter.ConvertFromString(brushString)!;
                                  //thisRun.Foreground = (SolidColorBrush)BConverter.ConvertFromString(brushString)!;
                               }
                               catch (Exception cEx) { Debug.WriteLine("Color error at:\n" + thisRun.Text + "\n\nvalue=" + rprsection.GetAttributes()[0].Value + "\n" + cEx.Message); }

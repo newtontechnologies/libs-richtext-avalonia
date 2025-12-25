@@ -217,11 +217,11 @@ public partial class FlowDocument
       if (startPar == null) return null!;
 
       IEditable startInline = null!;
-      bool IsAtLineBreak = false;
+      bool isAtLineBreak = false;
 
       IEditable startInlineReal = startPar.Inlines.LastOrDefault(ied => startPar.StartInDoc + ied.TextPositionOfInlineInParagraph <= charIndex)!;
       startInline = startPar.Inlines.LastOrDefault(ied => !ied.IsLineBreak && startPar.StartInDoc + ied.TextPositionOfInlineInParagraph <= charIndex)!;
-      IsAtLineBreak = startInline != startInlineReal;
+      isAtLineBreak = startInline != startInlineReal;
 
       return startInline!;
 

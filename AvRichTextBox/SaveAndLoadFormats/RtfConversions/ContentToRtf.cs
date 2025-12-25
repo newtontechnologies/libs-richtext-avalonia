@@ -29,10 +29,10 @@ internal static partial class RtfConversions
       string margb = Math.Round(PixToTwip(fdoc.PagePadding.Bottom)).ToString();
       sb.Append(@$"\margl{margl}\margr{margr}\margt{margt}\margb{margb}");
 
-      bool BoldOn = false;
-      bool ItalicOn = false;
-      bool UnderlineOn = false;
-      int CurrentLang = 1033;
+      bool boldOn = false;
+      bool italicOn = false;
+      bool underlineOn = false;
+      int currentLang = 1033;
 
       foreach (Block block in fdoc.Blocks)
       {
@@ -81,7 +81,7 @@ internal static partial class RtfConversions
             }
 
             foreach (IEditable ied in p.Inlines)
-            sb.Append(GetIEditableRtf(ied, ref BoldOn, ref ItalicOn, ref UnderlineOn, ref CurrentLang, fontMap, colorMap));
+            sb.Append(GetIEditableRtf(ied, ref boldOn, ref italicOn, ref underlineOn, ref currentLang, fontMap, colorMap));
 
             sb.Append(@"\par ");
          }
@@ -100,15 +100,15 @@ internal static partial class RtfConversions
       var colorMap = new Dictionary<Color, int>();
       sb.Append(GetFontAndColorTables(inlines, ref fontMap, ref colorMap));
 
-      bool BoldOn = false;
-      bool ItalicOn = false;
-      bool UnderlineOn = false;
-      int CurrentLang = 1033;
+      bool boldOn = false;
+      bool italicOn = false;
+      bool underlineOn = false;
+      int currentLang = 1033;
 
       foreach (IEditable ied in inlines)
       {
 
-         sb.Append(GetIEditableRtf(ied, ref BoldOn, ref ItalicOn, ref UnderlineOn, ref CurrentLang, fontMap, colorMap));
+         sb.Append(GetIEditableRtf(ied, ref boldOn, ref italicOn, ref underlineOn, ref currentLang, fontMap, colorMap));
          
          if (ied.InlineText.EndsWith('\r'))
             sb.Append(@"\par ");
@@ -119,21 +119,21 @@ internal static partial class RtfConversions
       return sb.ToString();
    }
 
-   private static string GetIEditableRtf(IEditable ied, ref bool BoldOn, ref bool ItalicOn, ref bool UnderlineOn, ref int currentLang, Dictionary<string, int> fontMap, Dictionary<Color, int> colorMap)
+   private static string GetIEditableRtf(IEditable ied, ref bool boldOn, ref bool italicOn, ref bool underlineOn, ref int currentLang, Dictionary<string, int> fontMap, Dictionary<Color, int> colorMap)
    {
-      StringBuilder iedSB = new();
+      StringBuilder iedSb = new();
 
       if (ied.GetType() == typeof(EditableLineBreak)) return @"\line";
 
 
-      if (ied.GetType() == typeof(EditableInlineUIContainer))
+      if (ied.GetType() == typeof(EditableInlineUiContainer))
       {
-         EditableInlineUIContainer eIUC = (EditableInlineUIContainer)ied;
-         if (eIUC.Child != null)
+         EditableInlineUiContainer eIuc = (EditableInlineUiContainer)ied;
+         if (eIuc.Child != null)
          {
-            if (eIUC.Child.GetType() == typeof(Image))
+            if (eIuc.Child.GetType() == typeof(Image))
             {
-               Image? thisImg = eIUC.Child as Image;
+               Image? thisImg = eIuc.Child as Image;
                Bitmap imgbitmap = (Bitmap)thisImg!.Source!;
 
                int picw = imgbitmap.PixelSize.Width;
@@ -154,12 +154,12 @@ internal static partial class RtfConversions
                memoryStream.Read(imgbytes, 0, imgbytes.Length);
 
                // add image to rtf code:
-               iedSB.AppendLine($@"{{\pict\pngblip\picw{picw}\pich{pich}\picwgoal{picwgoal}\pichgoal{pichgoal}");
+               iedSb.AppendLine($@"{{\pict\pngblip\picw{picw}\pich{pich}\picwgoal{picwgoal}\pichgoal{pichgoal}");
 
                foreach (byte b in imgbytes)
-                  iedSB.Append(b.ToString("x2"));  // hex encoding
+                  iedSb.Append(b.ToString("x2"));  // hex encoding
 
-               iedSB.AppendLine("}");
+               iedSb.AppendLine("}");
 
             }
          }
@@ -169,40 +169,40 @@ internal static partial class RtfConversions
       {
          EditableRun run = (EditableRun)ied;
          
-         if (!BoldOn && run.FontWeight == FontWeight.Bold) { iedSB.Append(@"\b "); BoldOn = true; }
-         if (!ItalicOn && run.FontStyle == FontStyle.Italic) { iedSB.Append(@"\i "); ; ItalicOn = true; }
-         if (!UnderlineOn && run.TextDecorations == TextDecorations.Underline) { iedSB.Append(@"\ul "); ; UnderlineOn = true; }
+         if (!boldOn && run.FontWeight == FontWeight.Bold) { iedSb.Append(@"\b "); boldOn = true; }
+         if (!italicOn && run.FontStyle == FontStyle.Italic) { iedSb.Append(@"\i "); ; italicOn = true; }
+         if (!underlineOn && run.TextDecorations == TextDecorations.Underline) { iedSb.Append(@"\ul "); ; underlineOn = true; }
          
-         if (BoldOn && run.FontWeight == FontWeight.Normal) { iedSB.Append(@"\b0 "); BoldOn = false; }
-         if (ItalicOn && run.FontStyle == FontStyle.Normal) { iedSB.Append(@"\i0 "); ItalicOn = false; }
-         if (UnderlineOn && run.TextDecorations != TextDecorations.Underline) { iedSB.Append(@"\ul0 "); UnderlineOn = false; }
+         if (boldOn && run.FontWeight == FontWeight.Normal) { iedSb.Append(@"\b0 "); boldOn = false; }
+         if (italicOn && run.FontStyle == FontStyle.Normal) { iedSb.Append(@"\i0 "); italicOn = false; }
+         if (underlineOn && run.TextDecorations != TextDecorations.Underline) { iedSb.Append(@"\ul0 "); underlineOn = false; }
 
-         if (run.FontSize > 0) iedSB.Append($@"\fs{(int)(run.FontSize * 2)} ");
+         if (run.FontSize > 0) iedSb.Append($@"\fs{(int)(run.FontSize * 2)} ");
 
          if (fontMap.TryGetValue(run.FontFamily.Name, out int fontIndex))
-            iedSB.Append($@"\f{fontIndex} ");
+            iedSb.Append($@"\f{fontIndex} ");
 
          if (run.Foreground is SolidColorBrush foregroundBrush && colorMap.TryGetValue(foregroundBrush.Color, out int colorIndexF))
-            iedSB.Append($@"\cf{colorIndexF} ");
+            iedSb.Append($@"\cf{colorIndexF} ");
          else
-            iedSB.Append(@"\cf0 "); // Reset to default
+            iedSb.Append(@"\cf0 "); // Reset to default
 
          if (run.Background is SolidColorBrush backgroundBrush && backgroundBrush.Color != Colors.Transparent && colorMap.TryGetValue(backgroundBrush.Color, out int colorIndexB))
-            iedSB.Append($@"\highlight{colorIndexB} ");
+            iedSb.Append($@"\highlight{colorIndexB} ");
          else
-            iedSB.Append(@"\highlight0 "); // Reset background to default
+            iedSb.Append(@"\highlight0 "); // Reset background to default
 
          if (!string.IsNullOrEmpty(run.Text))
-            iedSB.Append(GetRtfRunText(run.Text!, ref currentLang));
+            iedSb.Append(GetRtfRunText(run.Text!, ref currentLang));
       }
 
-      return iedSB.ToString();
+      return iedSb.ToString();
    }
 
 
    private static string GetFontAndColorTables(IEnumerable<Block> allBlocks, ref Dictionary<string, int> fontMap, ref Dictionary<Color, int> colorMap)
    {
-      StringBuilder fontAndColorTableSB = new ();
+      StringBuilder fontAndColorTableSb = new ();
 
       int fontIndex = 0;
       int colorIndex = 1;
@@ -236,17 +236,17 @@ internal static partial class RtfConversions
          }
       }
          
-      fontAndColorTableSB.Append(@"{\rtf1\ansi\deff0 {\fonttbl");
+      fontAndColorTableSb.Append(@"{\rtf1\ansi\deff0 {\fonttbl");
       foreach (var kvp in fontMap)
-         fontAndColorTableSB.Append($@"{{\f{kvp.Value}\fnil {kvp.Key};}}");
-      fontAndColorTableSB.Append('}');
+         fontAndColorTableSb.Append($@"{{\f{kvp.Value}\fnil {kvp.Key};}}");
+      fontAndColorTableSb.Append('}');
 
-      fontAndColorTableSB.Append(@"{\colortbl;");
+      fontAndColorTableSb.Append(@"{\colortbl;");
       foreach (var kvp in colorMap)
-         fontAndColorTableSB.Append($@"\red{kvp.Key.R}\green{kvp.Key.G}\blue{kvp.Key.B};");
-      fontAndColorTableSB.Append('}');
+         fontAndColorTableSb.Append($@"\red{kvp.Key.R}\green{kvp.Key.G}\blue{kvp.Key.B};");
+      fontAndColorTableSb.Append('}');
 
-      return fontAndColorTableSB.ToString();
+      return fontAndColorTableSb.ToString();
 
    }
 
@@ -273,19 +273,19 @@ internal static partial class RtfConversions
          }
       }
 
-      StringBuilder fontAndColorTableSB = new();
+      StringBuilder fontAndColorTableSb = new();
 
-      fontAndColorTableSB.Append(@"{\rtf1\ansi\deff0 {\fonttbl");
+      fontAndColorTableSb.Append(@"{\rtf1\ansi\deff0 {\fonttbl");
       foreach (var kvp in fontMap)
-         fontAndColorTableSB.Append($@"{{\f{kvp.Value}\fnil {kvp.Key};}}");
-      fontAndColorTableSB.Append('}');
+         fontAndColorTableSb.Append($@"{{\f{kvp.Value}\fnil {kvp.Key};}}");
+      fontAndColorTableSb.Append('}');
 
-      fontAndColorTableSB.Append(@"{\colortbl;");
+      fontAndColorTableSb.Append(@"{\colortbl;");
       foreach (var kvp in colorMap)
-         fontAndColorTableSB.Append($@"\red{kvp.Key.R}\green{kvp.Key.G}\blue{kvp.Key.B};");
-      fontAndColorTableSB.Append('}');
+         fontAndColorTableSb.Append($@"\red{kvp.Key.R}\green{kvp.Key.G}\blue{kvp.Key.B};");
+      fontAndColorTableSb.Append('}');
 
-      return fontAndColorTableSB.ToString();
+      return fontAndColorTableSb.ToString();
 
    }
 

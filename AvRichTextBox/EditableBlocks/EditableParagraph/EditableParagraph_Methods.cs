@@ -24,10 +24,10 @@ public partial class EditableParagraph
    {
       CharacterHit chit = this.TextLayout.TextLines[lineNo + direction].GetCharacterHitFromDistance(distanceFromLeft);
 
-      double CharDistanceDiffThis = Math.Abs(distanceFromLeft - this.TextLayout.HitTestTextPosition(chit.FirstCharacterIndex).Left);
-      double CharDistanceDiffNext = Math.Abs(distanceFromLeft - this.TextLayout.HitTestTextPosition(chit.FirstCharacterIndex + 1).Left);
+      double charDistanceDiffThis = Math.Abs(distanceFromLeft - this.TextLayout.HitTestTextPosition(chit.FirstCharacterIndex).Left);
+      double charDistanceDiffNext = Math.Abs(distanceFromLeft - this.TextLayout.HitTestTextPosition(chit.FirstCharacterIndex + 1).Left);
 
-      if (CharDistanceDiffThis > CharDistanceDiffNext)
+      if (charDistanceDiffThis > charDistanceDiffNext)
          return chit.FirstCharacterIndex + 1;
       else
          return chit.FirstCharacterIndex;

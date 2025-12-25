@@ -144,11 +144,11 @@ public partial class FlowDocument
 	{
 		try
 		{
-			using WordprocessingDocument WordDoc = WordprocessingDocument.Open(fileName, false);
+			using WordprocessingDocument wordDoc = WordprocessingDocument.Open(fileName, false);
 			try
 			{
 				ClearDocument();
-				GetFlowDocument(WordDoc.MainDocumentPart!, this);
+				GetFlowDocument(wordDoc.MainDocumentPart!, this);
 				InitializeDocument();
 			}
 			catch (Exception ex2) { Debug.WriteLine("error getting flow doc:\n" + ex2.Message); }
