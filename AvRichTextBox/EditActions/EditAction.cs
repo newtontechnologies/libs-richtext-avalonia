@@ -33,6 +33,12 @@ internal sealed class EditAction
       for (int i = 0; i < _edits.Count; i++)
          _edits[i].Apply();
 
+      // Block/inline starts must be updated before selection endpoints are (re)computed from Doc indices.
+      // Otherwise, boundary caret positions (e.g. Start=1 right after a paragraph break) can map to the wrong paragraph
+      // and yield a stale SelectionStartInBlock used by the caret overlay.
+      if (doc.Blocks.Count > 0)
+         doc.UpdateBlockAndInlineStarts(System.Math.Max(0, _refreshFromBlockIndex));
+
       doc.RestoreSelectionState(_selectionAfter);
       doc.RefreshAfterAtomicEdits(_refreshFromBlockIndex, _refreshParagraphs);
    }
@@ -41,6 +47,9 @@ internal sealed class EditAction
    {
       for (int i = _edits.Count - 1; i >= 0; i--)
          _edits[i].Unapply();
+
+      if (doc.Blocks.Count > 0)
+         doc.UpdateBlockAndInlineStarts(System.Math.Max(0, _refreshFromBlockIndex));
 
       doc.RestoreSelectionState(_selectionBefore);
       doc.RefreshAfterAtomicEdits(_refreshFromBlockIndex, _refreshParagraphs);

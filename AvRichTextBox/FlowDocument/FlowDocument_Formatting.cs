@@ -136,7 +136,7 @@ public partial class FlowDocument
       else
          throw new NotSupportedException($"Formatting for {avProperty.Name} is not supported.");
 
-      ExecuteEdit(BuildReplaceRangeAction(start, end, newInlines));
+      ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(start), GetTextPosFromGlobalIndex(end), newInlines));
    }
   
    

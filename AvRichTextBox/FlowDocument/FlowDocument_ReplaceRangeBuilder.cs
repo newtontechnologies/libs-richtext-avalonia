@@ -6,28 +6,30 @@ namespace AvRichTextBox;
 
 public partial class FlowDocument
 {
-   internal EditAction BuildReplaceRangeAction(int start, int end, List<IEditable> insertInlines)
+   internal EditAction BuildReplaceRangeAction(TextPos start, TextPos end, List<IEditable> insertInlines)
    {
-      if (end < start) throw new ArgumentOutOfRangeException(nameof(end));
+      int startIndex = GetGlobalIndexFromTextPos(start);
+      int endIndex = GetGlobalIndexFromTextPos(end);
+      if (endIndex < startIndex) throw new ArgumentOutOfRangeException(nameof(end));
 
       var selectionBefore = CaptureSelectionState();
 
       // Normalize bounds.
-      start = Math.Max(0, start);
-      end = Math.Min(DocEndPoint - 1, end);
+      int startIdx = Math.Max(0, startIndex);
+      int endIdx = Math.Min(DocEndPoint - 1, endIndex);
 
       // Special-case Enter (paragraph split): insertInlines == ["\\r"].
       // Expected behavior: move everything from selection start to next line.
       if (IsEnterInsert(insertInlines))
-         return BuildEnterSplitAction(selectionBefore, start, end);
+         return BuildEnterSplitAction(selectionBefore, startIdx, endIdx);
 
       // Resolve paragraphs for start/end in the same way as TextRange does.
-      var startPar = ResolveStartParagraph(start);
-      var endPar = ResolveEndParagraph(end);
+      var startPar = ResolveStartParagraph(startIdx);
+      var endPar = ResolveEndParagraph(endIdx);
 
       // Local offsets in paragraph text space (0..sumInlineLen).
-      int startLocal = Math.Min(start - startPar.StartInDoc, startPar.Text.Length);
-      int endLocal = Math.Min(end - endPar.StartInDoc, endPar.Text.Length);
+      int startLocal = Math.Min(startIdx - startPar.StartInDoc, startPar.Text.Length);
+      int endLocal = Math.Min(endIdx - endPar.StartInDoc, endPar.Text.Length);
 
       var edits = new List<IAtomicEdit>(capacity: 32);
       var refreshPars = new List<Paragraph>();
@@ -46,17 +48,17 @@ public partial class FlowDocument
       int insertedDocLen = BuildInsertAt(edits, refreshPars, startPar, startLocal, insertInlines);
 
       // 3) Shift TextRanges by delta.
-      int removedLen = end - start;
+      int removedLen = endIdx - startIdx;
       int delta = insertedDocLen - removedLen;
       if (delta != 0)
-         edits.Add(new ShiftTextRangesEdit(this, start, delta));
+         edits.Add(new ShiftTextRangesEdit(this, startIdx, delta));
 
       // Selection after: caret at start + insertedLen
       // IMPORTANT: clamp against the *post-edit* document length, not the current one.
       // Otherwise, inserts that grow the doc (e.g. paragraph break as +1) can incorrectly clamp caret to 0..0.
       int oldDocEndMinus1 = Math.Max(0, DocEndPoint - 1);
       int newDocEndMinus1 = Math.Max(0, oldDocEndMinus1 + delta);
-      int caret = Math.Clamp(start + insertedDocLen, 0, newDocEndMinus1);
+      int caret = Math.Clamp(startIdx + insertedDocLen, 0, newDocEndMinus1);
       var selectionAfter = new SelectionState(caret, caret, ExtendMode.ExtendModeNone, BiasForwardStart: false, BiasForwardEnd: false);
 
       int refreshFromIndex = Blocks.IndexOf(startPar);
@@ -82,7 +84,7 @@ public partial class FlowDocument
          // Fallback to generic replace behavior for cross-paragraph selections.
          // (Future: support full cross-paragraph enter-split.)
          var fallback = new List<IEditable> { new EditableRun("\r") };
-         return BuildReplaceRangeAction(start, end, fallback);
+         return BuildReplaceRangeAction(GetTextPosFromGlobalIndex(start), GetTextPosFromGlobalIndex(end), fallback);
       }
 
       startPar.UpdateEditableRunPositions();
@@ -112,15 +114,13 @@ public partial class FlowDocument
       // First paragraph keeps only prefix (drops selection and suffix).
       edits.Add(new SetRunTextEdit(run, oldText, prefix));
 
-      // New paragraph: selected + suffix + all following inlines (moved).
+      // New paragraph: suffix (text AFTER selection) + all following inlines (moved).
       var newPar = startPar.PropertyClone();
       newPar.Inlines.Clear();
       edits.Add(new InsertBlockEdit(this, Blocks.IndexOf(startPar) + 1, newPar));
 
       // Create runs for moved text (preserve formatting by copying common properties).
       int newParInsertIndex = 0;
-      if (selected.Length > 0)
-         edits.Add(new InsertInlineEdit(newPar, newParInsertIndex++, CloneRunWithText(run, selected)));
       if (suffix.Length > 0)
          edits.Add(new InsertInlineEdit(newPar, newParInsertIndex++, CloneRunWithText(run, suffix)));
 

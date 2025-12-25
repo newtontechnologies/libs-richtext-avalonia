@@ -44,7 +44,7 @@ public partial class RichTextBox
    {
       if (IsReadOnly) return;
 
-      FlowDoc.ExecuteEdit(FlowDoc.BuildReplaceRangeAction(FlowDoc.Selection.Start, FlowDoc.Selection.End, [new EditableRun("\r")]));
+      FlowDoc.ExecuteEdit(FlowDoc.BuildReplaceRangeAction(FlowDoc.GetTextPosFromGlobalIndex(FlowDoc.Selection.Start), FlowDoc.GetTextPosFromGlobalIndex(FlowDoc.Selection.End), [new EditableRun("\r")]));
       UpdateCurrentParagraphLayout();
 
    }

@@ -74,7 +74,7 @@ public partial class FlowDocument
          }
       }
 
-      ExecuteEdit(BuildReplaceRangeAction(Selection.Start, Selection.End, [new EditableRun(insertText)]));
+      ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(Selection.Start), GetTextPosFromGlobalIndex(Selection.End), [new EditableRun(insertText)]));
 
    }
 
@@ -150,12 +150,12 @@ public partial class FlowDocument
       if (backspace)
       {
          if (Selection.Start <= 0) return;
-         ExecuteEdit(BuildReplaceRangeAction(Selection.Start - 1, Selection.Start, []));
+         ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(Selection.Start - 1), GetTextPosFromGlobalIndex(Selection.Start), []));
       }
       else
       {
          if (Selection.Start >= DocEndPoint - 1) return;
-         ExecuteEdit(BuildReplaceRangeAction(Selection.Start, Selection.Start + 1, []));
+         ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(Selection.Start), GetTextPosFromGlobalIndex(Selection.Start + 1), []));
       }
 
 
@@ -164,14 +164,14 @@ public partial class FlowDocument
 
    internal void InsertLineBreak()
    {
-      ExecuteEdit(BuildReplaceRangeAction(Selection.Start, Selection.End, [new EditableLineBreak()]));
+      ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(Selection.Start), GetTextPosFromGlobalIndex(Selection.End), [new EditableLineBreak()]));
 
    }
 
 
    internal void DeleteSelection()
    {
-      ExecuteEdit(BuildReplaceRangeAction(Selection.Start, Selection.End, []));
+      ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(Selection.Start), GetTextPosFromGlobalIndex(Selection.End), []));
 
    }
 
@@ -388,7 +388,7 @@ public partial class FlowDocument
          int ws = p.Text.LastIndexOfAny(" \v".ToCharArray(), localCaret);
          int start = p.StartInDoc + (ws < 0 ? 0 : ws + 1);
 
-         ExecuteEdit(BuildReplaceRangeAction(start, caret, []));
+         ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(start), GetTextPosFromGlobalIndex(caret), []));
          return;
       }
 
@@ -400,20 +400,20 @@ public partial class FlowDocument
       // Delete paragraph boundary (merge forward) if caret is at paragraph end.
       if (local >= par.Text.Length)
       {
-         ExecuteEdit(BuildReplaceRangeAction(caret, caret + 1, []));
+         ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(caret), GetTextPosFromGlobalIndex(caret + 1), []));
          return;
       }
 
       IEditable startInline = Selection.GetStartInline();
       if (startInline.IsUiContainer || startInline.IsLineBreak)
       {
-         ExecuteEdit(BuildReplaceRangeAction(caret, caret + 1, []));
+         ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(caret), GetTextPosFromGlobalIndex(caret + 1), []));
          return;
       }
 
       int nextSpace = par.Text.IndexOf(' ', local);
       int end = nextSpace < 0 ? (par.StartInDoc + par.Text.Length) : (par.StartInDoc + nextSpace + 1);
-      ExecuteEdit(BuildReplaceRangeAction(caret, end, []));
+      ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(caret), GetTextPosFromGlobalIndex(end), []));
 
    }
 

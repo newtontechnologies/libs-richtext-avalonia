@@ -115,7 +115,7 @@ public class UndoRedoRoundTripTests
       doc.InsertText("ab");
 
       // Insert paragraph between 'a' and 'b'
-      doc.ExecuteEdit(doc.BuildReplaceRangeAction(1, 1, [new EditableRun("\r")]));
+      doc.ExecuteEdit(doc.BuildReplaceRangeAction(doc.GetTextPosFromGlobalIndex(1), doc.GetTextPosFromGlobalIndex(1), [new EditableRun("\r")]));
       var sBeforeDelete = doc.SerializeForTests();
 
       // Delete across the paragraph boundary
@@ -156,7 +156,7 @@ public class UndoRedoRoundTripTests
 
       // Create two paragraphs: "a" + paragraph break + "b"
       doc.Select(0, 0);
-      doc.ExecuteEdit(doc.BuildReplaceRangeAction(0, 0, [new EditableRun("a\r"), new EditableRun("b")]));
+      doc.ExecuteEdit(doc.BuildReplaceRangeAction(doc.GetTextPosFromGlobalIndex(0), doc.GetTextPosFromGlobalIndex(0), [new EditableRun("a\r"), new EditableRun("b")]));
 
       // Start of second paragraph is index 2: [ 'a'(0) ][ '\\r'(1) ][ 'b'(2) ]
       doc.Select(2, 0);
@@ -174,7 +174,7 @@ public class UndoRedoRoundTripTests
       await StabilizeAsync();
 
       doc.Select(0, 0);
-      doc.ExecuteEdit(doc.BuildReplaceRangeAction(0, 0, [new EditableRun("a\r"), new EditableRun("b")]));
+      doc.ExecuteEdit(doc.BuildReplaceRangeAction(doc.GetTextPosFromGlobalIndex(0), doc.GetTextPosFromGlobalIndex(0), [new EditableRun("a\r"), new EditableRun("b")]));
 
       // End of first paragraph text is index 1 (paragraph break position).
       doc.Select(1, 0);
@@ -196,7 +196,7 @@ public class UndoRedoRoundTripTests
 
       // caret between a and b
       doc.Select(1, 0);
-      doc.ExecuteEdit(doc.BuildReplaceRangeAction(1, 1, [new EditableRun("\r")]));
+      doc.ExecuteEdit(doc.BuildReplaceRangeAction(doc.GetTextPosFromGlobalIndex(1), doc.GetTextPosFromGlobalIndex(1), [new EditableRun("\r")]));
 
       Assert.StartsWith("a\rb\r", doc.Text);
    }
@@ -212,9 +212,9 @@ public class UndoRedoRoundTripTests
 
       // select "b"
       doc.Select(1, 1);
-      doc.ExecuteEdit(doc.BuildReplaceRangeAction(1, 2, [new EditableRun("\r")]));
+      doc.ExecuteEdit(doc.BuildReplaceRangeAction(doc.GetTextPosFromGlobalIndex(1), doc.GetTextPosFromGlobalIndex(2), [new EditableRun("\r")]));
 
-      Assert.StartsWith("a\rbc\r", doc.Text);
+      Assert.StartsWith("a\rc\r", doc.Text);
    }
 }
 

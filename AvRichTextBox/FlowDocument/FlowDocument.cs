@@ -172,7 +172,11 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
    internal void SelectionStart_Changed(TextRange selRange, int newStart)
    {
 
-      Paragraph startPar = GetContainingParagraph(newStart);
+      // IMPORTANT: use the same paragraph-boundary convention as TextRange.GetStartPar():
+      // if the caret is exactly at a paragraph end (EndInDoc) and there's a next paragraph,
+      // the start belongs to the next paragraph. This keeps SelectionStartInBlock consistent
+      // and prevents caret overlay from hit-testing the wrong paragraph.
+      Paragraph startPar = selRange.GetStartPar() ?? GetContainingParagraph(newStart);
       selRange.StartParagraph = startPar;
       startPar.SelectionStartInBlock = newStart - startPar.StartInDoc;
       startPar.CallRequestTextLayoutInfoStart();
@@ -206,7 +210,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
    internal void SelectionEnd_Changed(TextRange selRange, int newEnd)
    {
             
-      selRange.EndParagraph = GetContainingParagraph(newEnd);
+      selRange.EndParagraph = selRange.GetEndPar() ?? GetContainingParagraph(newEnd);
       
       selRange.EndParagraph.SelectionEndInBlock = newEnd - selRange.EndParagraph.StartInDoc;
     
