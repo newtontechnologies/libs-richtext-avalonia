@@ -16,6 +16,11 @@ public partial class FlowDocument
       start = Math.Max(0, start);
       end = Math.Min(DocEndPoint - 1, end);
 
+      // Special-case Enter (paragraph split): insertInlines == ["\\r"].
+      // Expected behavior: move everything from selection start to next line.
+      if (IsEnterInsert(insertInlines))
+         return BuildEnterSplitAction(selectionBefore, start, end);
+
       // Resolve paragraphs for start/end in the same way as TextRange does.
       var startPar = ResolveStartParagraph(start);
       var endPar = ResolveEndParagraph(end);
@@ -56,6 +61,110 @@ public partial class FlowDocument
 
       int refreshFromIndex = Blocks.IndexOf(startPar);
       return new EditAction(edits, selectionBefore, selectionAfter, refreshFromIndex, refreshPars.Distinct().ToList());
+   }
+
+   private static bool IsEnterInsert(List<IEditable> insertInlines)
+      => insertInlines.Count == 1 && insertInlines[0] is EditableRun r && r.InlineText == "\r";
+
+   private EditAction BuildEnterSplitAction(SelectionState selectionBefore, int start, int end)
+   {
+      // For now support the common case: selection is within a single paragraph and within a single EditableRun.
+      var startPar = ResolveStartParagraph(start);
+      var endPar = ResolveEndParagraph(end);
+      int startLocal = Math.Min(start - startPar.StartInDoc, startPar.Text.Length);
+      int endLocal = Math.Min(end - endPar.StartInDoc, endPar.Text.Length);
+
+      var edits = new List<IAtomicEdit>(capacity: 32);
+      var refreshPars = new List<Paragraph>();
+
+      if (startPar != endPar)
+      {
+         // Fallback to generic replace behavior for cross-paragraph selections.
+         // (Future: support full cross-paragraph enter-split.)
+         var fallback = new List<IEditable> { new EditableRun("\r") };
+         return BuildReplaceRangeAction(start, end, fallback);
+      }
+
+      startPar.UpdateEditableRunPositions();
+
+      // Find the run that contains the split point.
+      var run = startPar.Inlines
+         .OfType<EditableRun>()
+         .LastOrDefault(r => r.TextPositionOfInlineInParagraph <= startLocal);
+
+      if (run is null)
+      {
+         // Ensure at least one run exists.
+         run = new EditableRun("");
+         edits.Add(new InsertInlineEdit(startPar, 0, run));
+      }
+
+      int runIndex = startPar.Inlines.IndexOf(run);
+      int runStart = run.TextPositionOfInlineInParagraph;
+      int a = Math.Clamp(startLocal - runStart, 0, run.InlineText.Length);
+      int b = Math.Clamp(endLocal - runStart, 0, run.InlineText.Length);
+
+      string oldText = run.InlineText;
+      string prefix = oldText.Substring(0, a);
+      string selected = oldText.Substring(a, Math.Max(0, b - a));
+      string suffix = oldText.Substring(b);
+
+      // First paragraph keeps only prefix (drops selection and suffix).
+      edits.Add(new SetRunTextEdit(run, oldText, prefix));
+
+      // New paragraph: selected + suffix + all following inlines (moved).
+      var newPar = startPar.PropertyClone();
+      newPar.Inlines.Clear();
+      edits.Add(new InsertBlockEdit(this, Blocks.IndexOf(startPar) + 1, newPar));
+
+      // Create runs for moved text (preserve formatting by copying common properties).
+      int newParInsertIndex = 0;
+      if (selected.Length > 0)
+         edits.Add(new InsertInlineEdit(newPar, newParInsertIndex++, CloneRunWithText(run, selected)));
+      if (suffix.Length > 0)
+         edits.Add(new InsertInlineEdit(newPar, newParInsertIndex++, CloneRunWithText(run, suffix)));
+
+      // Move all inlines after the run (runIndex+1..) to new paragraph.
+      var following = startPar.Inlines.Skip(runIndex + 1).ToList();
+      for (int i = 0; i < following.Count; i++)
+      {
+         var il = following[i];
+         edits.Add(new RemoveInlineEdit(startPar, runIndex + 1 + i, il));
+         edits.Add(new InsertInlineEdit(newPar, newParInsertIndex++, il));
+      }
+
+      // Ensure second paragraph isn't empty.
+      if (newParInsertIndex == 0)
+         edits.Add(new InsertInlineEdit(newPar, 0, CloneRunWithText(run, "")));
+
+      refreshPars.Add(startPar);
+      refreshPars.Add(newPar);
+
+      // Only net effect on doc indexing is inserting one paragraph boundary at `start`.
+      edits.Add(new ShiftTextRangesEdit(this, start, 1));
+
+      int oldDocEndMinus1 = Math.Max(0, DocEndPoint - 1);
+      int newDocEndMinus1 = Math.Max(0, oldDocEndMinus1 + 1);
+      int caret = Math.Clamp(start + 1, 0, newDocEndMinus1);
+      var selectionAfter = new SelectionState(caret, caret, ExtendMode.ExtendModeNone, BiasForwardStart: false, BiasForwardEnd: false);
+
+      return new EditAction(edits, selectionBefore, selectionAfter, Blocks.IndexOf(startPar), refreshPars);
+   }
+
+   private static EditableRun CloneRunWithText(EditableRun template, string text)
+   {
+      return new EditableRun(text)
+      {
+         FontStyle = template.FontStyle,
+         FontWeight = template.FontWeight,
+         TextDecorations = template.TextDecorations,
+         FontSize = template.FontSize,
+         FontFamily = template.FontFamily,
+         Background = template.Background,
+         Foreground = template.Foreground,
+         BaselineAlignment = template.BaselineAlignment,
+         FontStretch = template.FontStretch
+      };
    }
 
    internal Paragraph ResolveStartParagraph(int docIndex)
@@ -111,7 +220,7 @@ public partial class FlowDocument
       for (int i = hits.Count - 2; i >= 1; i--)
       {
          var mid = hits[i];
-         edits.Add(new RevertAtomicEdit(new InsertInlineEdit(p, mid.idx, mid.il)));
+         edits.Add(new RemoveInlineEdit(p, mid.idx, mid.il));
       }
 
       if (ReferenceEquals(first.il, last.il))
@@ -127,7 +236,7 @@ public partial class FlowDocument
          else
          {
             // Non-run (linebreak/ui): remove whole
-            edits.Add(new RevertAtomicEdit(new InsertInlineEdit(p, first.idx, first.il)));
+            edits.Add(new RemoveInlineEdit(p, first.idx, first.il));
          }
       }
       else
@@ -142,7 +251,7 @@ public partial class FlowDocument
          }
          else
          {
-            edits.Add(new RevertAtomicEdit(new InsertInlineEdit(p, last.idx, last.il)));
+            edits.Add(new RemoveInlineEdit(p, last.idx, last.il));
          }
 
          // Remove fully covered inlines between first and last (already did middle; but need to handle first/last removals if fully covered)
@@ -156,7 +265,7 @@ public partial class FlowDocument
          }
          else
          {
-            edits.Add(new RevertAtomicEdit(new InsertInlineEdit(p, first.idx, first.il)));
+            edits.Add(new RemoveInlineEdit(p, first.idx, first.il));
          }
       }
 
@@ -177,13 +286,12 @@ public partial class FlowDocument
 
       int insertIndex = startPar.Inlines.Count;
       var toMove = endPar.Inlines.ToList();
+      // Remove from endPar in descending order so indices remain valid.
+      for (int i = toMove.Count - 1; i >= 0; i--)
+         edits.Add(new RemoveInlineEdit(endPar, i, toMove[i]));
+      // Insert into startPar in ascending order.
       for (int i = 0; i < toMove.Count; i++)
-      {
-         var il = toMove[i];
-         // remove from endPar, then insert into startPar
-         edits.Add(new RevertAtomicEdit(new InsertInlineEdit(endPar, i, il)));
-         edits.Add(new InsertInlineEdit(startPar, insertIndex + i, il));
-      }
+         edits.Add(new InsertInlineEdit(startPar, insertIndex + i, toMove[i]));
 
       refreshPars.Add(startPar);
       refreshPars.Add(endPar);
@@ -194,7 +302,7 @@ public partial class FlowDocument
       for (int bi = endIndex; bi > startIndex; bi--)
       {
          if (Blocks[bi] is Block b)
-            edits.Add(new RevertAtomicEdit(new InsertBlockEdit(this, bi, b)));
+            edits.Add(new RemoveBlockEdit(this, bi, b));
       }
    }
 
@@ -259,7 +367,7 @@ public partial class FlowDocument
          for (int si = suffix.Count - 1; si >= 0; si--)
          {
             var il = suffix[si];
-            edits.Add(new RevertAtomicEdit(new InsertInlineEdit(p, idx + si, il)));
+            edits.Add(new RemoveInlineEdit(p, idx + si, il));
          }
 
          // Insert first segment into current paragraph

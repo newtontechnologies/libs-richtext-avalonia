@@ -184,6 +184,38 @@ public class UndoRedoRoundTripTests
       Assert.Contains("Blocks=1", s);
       Assert.StartsWith("ab\r", doc.Text);
    }
+
+   [Fact]
+   public async Task Enter_in_middle_of_run_moves_suffix_to_new_paragraph()
+   {
+      var doc = new AvRichTextBox.FlowDocument();
+      await StabilizeAsync();
+
+      doc.Select(0, 0);
+      doc.InsertText("ab");
+
+      // caret between a and b
+      doc.Select(1, 0);
+      doc.ExecuteEdit(doc.BuildReplaceRangeAction(1, 1, [new EditableRun("\r")]));
+
+      Assert.StartsWith("a\rb\r", doc.Text);
+   }
+
+   [Fact]
+   public async Task Enter_with_selection_moves_selected_and_suffix_to_new_paragraph()
+   {
+      var doc = new AvRichTextBox.FlowDocument();
+      await StabilizeAsync();
+
+      doc.Select(0, 0);
+      doc.InsertText("abc");
+
+      // select "b"
+      doc.Select(1, 1);
+      doc.ExecuteEdit(doc.BuildReplaceRangeAction(1, 2, [new EditableRun("\r")]));
+
+      Assert.StartsWith("a\rbc\r", doc.Text);
+   }
 }
 
 
