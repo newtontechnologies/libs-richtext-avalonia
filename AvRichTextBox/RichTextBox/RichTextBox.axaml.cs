@@ -48,7 +48,7 @@ public partial class RichTextBox : UserControl
 
       InitializeBlinkAnimation();
 
-      _blinkAnimation!.RunAsync(_caretRect);
+      _blinkAnimation.RunAsync(_caretRect);
       _caretRect.Bind(IsVisibleProperty, new Binding("CaretVisible"));
       _caretRect.Bind(MarginProperty, new Binding("CaretMargin"));
       _caretRect.Bind(HeightProperty, new Binding("CaretHeight"));
@@ -139,28 +139,20 @@ public partial class RichTextBox : UserControl
       InputMethod.SetIsInputMethodEnabled(this, true);
       this.TextInputMethodClientRequested += RichTextBox_TextInputMethodClientRequested;
 
-      _client = new RichTextBoxTextInputClient(this);
+      _client ??= new RichTextBoxTextInputClient(this);
       //Debug.WriteLine("created new client)");
 
       this.Focus();
 
    }
 
-   RichTextBoxTextInputClient _client = null!;
+   private RichTextBoxTextInputClient? _client;
 
    private void RichTextBox_TextInputMethodClientRequested(object? sender, TextInputMethodClientRequestedEventArgs e)
    {
-     
-      if (e.GetType() == typeof(TextInputMethodClientRequestedEventArgs))
-      {
-         if (_client == null)
-            _client = new RichTextBoxTextInputClient(this);
-        
-         e.Client = _client;
-
-         //Debug.WriteLine("e.Client requested = " + e.Client.Selection.ToString());
-
-      }
+      _client ??= new RichTextBoxTextInputClient(this);
+      e.Client = _client;
+      //Debug.WriteLine("e.Client requested = " + e.Client.Selection.ToString());
 
    }
 
@@ -179,14 +171,14 @@ public partial class RichTextBox : UserControl
    {
       if (!string.IsNullOrEmpty(_preeditText))
       {
-         double cX = _caretRect!.Margin.Left - 2;
-         double cY = _caretRect!.Margin.Top - 2;
+         double cX = _caretRect.Margin.Left - 2;
+         double cY = _caretRect.Margin.Top - 2;
 
          PreeditOverlay.Text = _preeditText;
          PreeditOverlay.Margin = new Thickness(cX, cY, 0, 0);
          PreeditOverlay.IsVisible = true;
          CaretPosition = new Point(cX, cY - RtbVm.RTBScrollOffset.Y);
-         _client.UpdateCaretPosition();
+         _client?.UpdateCaretPosition();
 
       }
       else
@@ -195,7 +187,7 @@ public partial class RichTextBox : UserControl
       }
    }
    
-   private readonly Rectangle? _caretRect = new()
+   private readonly Rectangle _caretRect = new()
    {
       StrokeThickness = 2,
       Stroke = Brushes.Black,
