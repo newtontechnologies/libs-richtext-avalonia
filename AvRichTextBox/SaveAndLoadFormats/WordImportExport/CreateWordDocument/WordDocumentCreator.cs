@@ -1,11 +1,9 @@
-﻿using Avalonia.Media;
-using DocumentFormat.OpenXml;
+﻿using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System;
 using System.Diagnostics;
 using DOW = DocumentFormat.OpenXml.Wordprocessing;
-using AvColor = Avalonia.Media.Color;
 using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;

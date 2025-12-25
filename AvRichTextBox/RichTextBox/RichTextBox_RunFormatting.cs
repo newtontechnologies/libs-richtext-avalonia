@@ -1,9 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Input;
-using DocumentFormat.OpenXml.VariantTypes;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using RtfDomParserAv;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,26 +11,22 @@ namespace AvRichTextBox;
 
 public partial class RichTextBox
 {
-    
    private void ToggleItalics()
    {
       if (IsReadOnly) return;
       FlowDoc.ToggleItalic();
-
    }
 
    private void ToggleBold()
    {
       if (IsReadOnly) return;
       FlowDoc.ToggleBold();
-
    }
 
    private void ToggleUnderlining()
    {
       if (IsReadOnly) return;
       FlowDoc.ToggleUnderlining();
-
    }
 
    private void CopyToClipboard()
@@ -49,10 +43,8 @@ public partial class RichTextBox
       dataObject.Set("Text", FlowDoc.Selection.GetText());
             
       TopLevel.GetTopLevel(this)!.Clipboard!.SetDataObjectAsync(dataObject);
-      
    }
 
-   
    private async void PasteFromClipboard()
    {
       if (IsReadOnly) return;
@@ -112,10 +104,7 @@ public partial class RichTextBox
          FlowDoc.SelectionExtendMode = ExtendMode.ExtendModeNone;
 
          CreateClient();
-
-        
       }
-
    }
 
 

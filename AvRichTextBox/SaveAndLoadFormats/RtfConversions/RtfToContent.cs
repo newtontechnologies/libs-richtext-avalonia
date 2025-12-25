@@ -5,10 +5,8 @@ using System.Linq;
 using static AvRichTextBox.HelperMethods;
 using RtfDomParserAv;
 using System.Collections.Generic;
-using Avalonia.Controls.Documents;
 using DynamicData;
 using System.Text.RegularExpressions;
-using System.Xml;
 using Avalonia.Media.Imaging;
 using System.IO;
 

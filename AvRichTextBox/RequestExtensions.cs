@@ -1,7 +1,5 @@
 ﻿using Avalonia;
-using Avalonia.Controls;
 using System;
-using System.Diagnostics;
 
 namespace AvRichTextBox;
 
@@ -53,12 +51,5 @@ public static class RequestExtensions
             edPar.SetValue(InvalidateVisualRequestedProperty, false);
          }
       });
-
-
-           
-
-
    }
 }
-
-

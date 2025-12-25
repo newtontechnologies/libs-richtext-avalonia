@@ -1,9 +1,7 @@
 ﻿using DynamicData;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace AvRichTextBox;
 
@@ -195,17 +193,12 @@ public partial class FlowDocument
          }
 
       UpdateBlockAndInlineStarts(blockIndex);
-
    }
-
-   [GeneratedRegex(@"[\r\n]")]
-   internal static partial Regex FindLineBreakCharsRegex();
 
 
    internal IEditable GetStartInline(int charIndex)
    {
-
-      Paragraph? startPar = Blocks.LastOrDefault(b => b.IsParagraph && (b.StartInDoc <= charIndex))! as Paragraph;
+      var startPar = Blocks.LastOrDefault(b => b.IsParagraph && (b.StartInDoc <= charIndex))! as Paragraph;
 
       if (startPar != null)
       {

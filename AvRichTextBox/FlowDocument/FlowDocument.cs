@@ -1,15 +1,9 @@
 ﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.Documents;
-using Avalonia.Media;
 using DynamicData;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -34,15 +28,9 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
 
    internal bool IsEditable { get; set; } = true;
 
-   readonly SolidColorBrush _caretBrush = new(Colors.Cyan, 0.55);
-
    internal UndoStack Undos { get; } = new();
 
    internal List<TextRange> TextRanges = [];
-
-   public void ScrollFlowDocInDirection(int direction) { ScrollInDirection?.Invoke(direction); }
-
-   public List<Paragraph> GetSelectedParagraphs => Blocks.Where(b=> b.StartInDoc <= Selection.Start && b.EndInDoc >= Selection.End).Select(b=>(Paragraph)b).ToList();
 
    public ObservableCollection<Block> Blocks { get; set; } = [];
 
@@ -97,9 +85,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
 
       //Selection.StartParagraph.CallRequestTextBoxFocus();
-      
    }
-
 
    public FlowDocument()
    {
@@ -111,19 +97,6 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       NewDocument();
 
       DefineFormatRunActions();
-
-      //this.PropertyChanged += FlowDocument_PropertyChanged;
-
-   }
-
-   private void FlowDocument_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-   {
-      //Debug.WriteLine("property name = " + e.PropertyName);
-
-      if (e.PropertyName == "Blocks")
-      {
-         //Debug.WriteLine("FlowDoc property changed: Blocks changed");
-      }
    }
 
    internal void NewDocument()

@@ -1,11 +1,8 @@
-﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.Documents;
+﻿using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
-using System.Diagnostics;
 using System.IO;
 using DOW = DocumentFormat.OpenXml.Wordprocessing;
 using static AvRichTextBox.HelperMethods;
@@ -104,6 +101,4 @@ internal static partial class WordConversions
 
       return parg;
    }
-
-
 }

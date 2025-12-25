@@ -1,8 +1,6 @@
 using Avalonia;
-using Avalonia.Styling;
 using Avalonia.VisualTree;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace AvRichTextBox;

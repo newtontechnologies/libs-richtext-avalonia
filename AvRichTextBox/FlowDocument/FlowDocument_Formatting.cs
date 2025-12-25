@@ -1,7 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls.Documents;
 using Avalonia.Media;
-using Avalonia.Media.Immutable;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -273,31 +272,5 @@ public partial class FlowDocument
       _underliningOn = false;
 
    }
-
-   internal object? GetFormattingInline(AvaloniaProperty avProperty, IEditable inline)
-   {
-      object? returnValue = null!;
-
-      if (inline is EditableRun run)
-      {
-         switch (avProperty.Name)
-         {
-            case "Bold": returnValue = run.FontWeight; break;
-            case "FontFamily": returnValue = run.FontFamily; break;
-            case "FontStyle": returnValue = run.FontStyle; break;
-            case "TextDecorations": returnValue = run.TextDecorations; break;
-            case "FontSize": returnValue = run.FontSize; break;
-            case "Background": returnValue = run.Background; break;
-            case "Foreground": returnValue = run.Foreground; break;
-            case "FontStretch": returnValue = run.FontStretch; break;
-            case "BaselineAlignment": returnValue = run.BaselineAlignment; break;
-         }
-      }
-
-      return returnValue;
-   }
-
-
-
 }
 

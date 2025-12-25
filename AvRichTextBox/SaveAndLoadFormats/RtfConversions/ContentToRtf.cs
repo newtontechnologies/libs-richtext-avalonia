@@ -1,7 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Media;
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Collections.Generic;

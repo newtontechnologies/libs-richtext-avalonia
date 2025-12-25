@@ -1,12 +1,10 @@
 using Avalonia.Input;
-using System.Diagnostics;
 
 
 namespace AvRichTextBox;
 
 public partial class RichTextBox
 {  
-
    private void RichTextBox_KeyDown(object? sender, KeyEventArgs e)
    {
 

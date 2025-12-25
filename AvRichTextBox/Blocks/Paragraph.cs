@@ -1,11 +1,7 @@
 ﻿using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Media;
-using DocumentFormat.OpenXml.Drawing;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 
 namespace AvRichTextBox;
@@ -140,16 +136,6 @@ public class Paragraph : Block
 
    }
 
-   internal bool RemoveEmptyInlines()
-   {
-      for (int iedno = this.Inlines.Count - 1; iedno >= 0; iedno -= 1)
-         if (this.Inlines[iedno].InlineText == "")
-            this.Inlines.RemoveAt(iedno);
-
-      return this.Inlines.Count == 0;
-
-   }
-
    internal Paragraph PropertyClone()
    {
       return new Paragraph() 
@@ -186,7 +172,4 @@ public class Paragraph : Block
          Inlines = new ObservableCollection<IEditable>(this.Inlines.Select(il=>il.Clone()))
       }; 
    }
-
-   
-
 }

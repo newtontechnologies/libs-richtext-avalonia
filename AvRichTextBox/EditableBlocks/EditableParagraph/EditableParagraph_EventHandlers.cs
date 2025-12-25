@@ -1,7 +1,4 @@
-﻿using Avalonia;
-using System.Collections.Generic;
-
-namespace AvRichTextBox;
+﻿namespace AvRichTextBox;
 
 public partial class EditableParagraph
 {

@@ -1,15 +1,8 @@
 ﻿using Avalonia;
-using Avalonia.Input;
-using DocumentFormat.OpenXml.Drawing.Charts;
 using System;
 using System.ComponentModel;
-using System.Data.SqlTypes;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AvRichTextBox;
 
@@ -136,18 +129,6 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
    }
 
-   public object? GetFormatting(AvaloniaProperty avProp)
-   {
-      object? formatting = null!;
-      if (MyFlowDoc == null) return null!;
-      IEditable currentInline = GetStartInline();
-      if (currentInline != null)
-         formatting = MyFlowDoc.GetFormattingInline(avProp, currentInline);
-      
-      return formatting;
-   }
-
-   bool _isFormatting = false;
    public void ApplyFormatting(AvaloniaProperty avProp, object value)
    {
       if (MyFlowDoc == null) return;

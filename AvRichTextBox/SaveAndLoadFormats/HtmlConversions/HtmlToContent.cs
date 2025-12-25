@@ -1,11 +1,8 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Avalonia.Media.Immutable;
-using Avalonia.Media.TextFormatting;
 using HtmlAgilityPack;
 using System;
-using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;

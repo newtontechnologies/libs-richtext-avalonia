@@ -1,12 +1,8 @@
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Data.Core;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
-using DynamicData;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 

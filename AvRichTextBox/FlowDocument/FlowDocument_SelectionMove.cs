@@ -1,8 +1,4 @@
-﻿using Avalonia.Controls;
-using DynamicData;
-using System;
-using System.Diagnostics;
-using System.Linq;
+﻿using System;
 using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
@@ -410,23 +406,9 @@ public partial class FlowDocument
                Selection.Start = newIndexInDoc;
                Selection.CollapseToStart();
             }
-               
-
+            
             break;
-
       }
-
-      
    }
-
-   internal void UpdateCaret()
-   {
-      Selection.StartParagraph.CallRequestTextLayoutInfoStart();
-      Selection.StartParagraph.CallRequestTextLayoutInfoEnd();
-      Selection.EndParagraph.CallRequestTextLayoutInfoStart();
-      Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
-   }
-
-  
 }
 

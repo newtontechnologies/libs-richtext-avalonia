@@ -4,7 +4,6 @@ using DocumentFormat.OpenXml;
 using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
 using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;

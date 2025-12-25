@@ -5,7 +5,6 @@ using Avalonia.Media;
 using System;
 using System.Diagnostics;
 using static AvRichTextBox.HelperMethods;
-using System.Text;
 
 namespace AvRichTextBox;
 

@@ -6,7 +6,6 @@ using System;
 using System.Net;
 using System.Text;
 using Avalonia.Controls;
-using System.Linq;
 
 namespace AvRichTextBox;
 
@@ -72,11 +71,9 @@ internal static partial class HtmlConversions
                         parnode.AppendChild(imgNode);
                      }
                      break;
-
                }
 
                parnode.AppendChild(spanNode);
-
             }
 
             parnode.SetAttributeValue("style", GetParStyle(p));
@@ -84,10 +81,8 @@ internal static partial class HtmlConversions
             body.AppendChild(parnode);
          }
       }
-      
 
       return hdoc;
-        
    }
 
    private static string GetParStyle(Paragraph p)
@@ -129,7 +124,6 @@ internal static partial class HtmlConversions
 
       return parStyle.ToString();
    }
-
 
    private static string GetInlineStyle(EditableRun run)
    {
@@ -193,7 +187,5 @@ internal static partial class HtmlConversions
 
       return null; 
    }
-
-    
 
 }

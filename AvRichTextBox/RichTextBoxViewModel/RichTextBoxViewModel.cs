@@ -1,8 +1,6 @@
 ﻿using Avalonia;
-using Avalonia.Threading;
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using static AvRichTextBox.FlowDocument;
 
@@ -65,11 +63,8 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
 
    internal void UpdateCaretVisible()
    {
-
       FlowDoc.Selection.StartParagraph?.CallRequestInvalidateVisual();
-
       CaretVisible = FlowDoc.Selection.Length == 0;
-
    }
 
 
@@ -94,12 +89,8 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
          if (FlowDoc.SelectionExtendMode == ExtendMode.ExtendModeRight)
             checkPointY = FlowDoc.Selection!.EndRect!.Y;
 
-
          if (checkPointY < RTBScrollOffset.Y)
             RTBScrollOffset = RTBScrollOffset.WithY(checkPointY);
       }
-
    }
-
-
 }

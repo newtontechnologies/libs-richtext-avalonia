@@ -4,15 +4,12 @@ using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace AvRichTextBox;
 
 public partial class RichTextBox : UserControl
 {   
-
    internal void SelectionStart_RectChanged(EditableParagraph edPar)
    {
       edPar.UpdateLayout();
@@ -151,9 +148,7 @@ public partial class RichTextBox : UserControl
       thisPar.FirstIndexLastLine = textLines[^1].FirstTextSourceIndex;
 
       RtbVm.UpdateCaretVisible();
-
    }
-
 
    private static int GetClosestIndex(EditableParagraph edPar, int lineNo, double distanceFromLeft, int direction)
    {
@@ -175,10 +170,7 @@ public partial class RichTextBox : UserControl
       //Point? selStartPoint = edPar.TranslatePoint(selStartRect.Position, DocIC);
       //if (selStartPoint != null)
       //   FlowDoc.Selection.StartRect = new Rect((Point)selStartPoint!, selStartRect.Size);
-
    }
-
-
 }
 
 

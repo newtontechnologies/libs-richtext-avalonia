@@ -1,11 +1,8 @@
 ﻿using Avalonia;
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 
 namespace AvRichTextBox;
 
@@ -70,13 +67,8 @@ public class Block : INotifyPropertyChanged
             _selectionEndInBlock = value; // Set the correct value
             NotifyPropertyChanged(nameof(SelectionEndInBlock));
          }
-
       }
-
    }
-
-
-   public static bool IsFocusable => false;
 
    internal void ClearSelection()
    {
@@ -87,12 +79,8 @@ public class Block : INotifyPropertyChanged
          foreach (EditableInlineUiContainer iuc in p.Inlines.OfType<EditableInlineUiContainer>())
             iuc.IsSelected = false;
       }
-      
    }
 
    internal void CollapseToStart() { if (SelectionStartInBlock != SelectionEndInBlock) SelectionEndInBlock = SelectionStartInBlock; }
    internal void CollapseToEnd() { if (SelectionStartInBlock != SelectionEndInBlock) SelectionStartInBlock = SelectionEndInBlock; }
-
-
-
 }

@@ -1,18 +1,14 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Documents;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO.Compression;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using static AvRichTextBox.HelperMethods;
 using System.Xml;
 

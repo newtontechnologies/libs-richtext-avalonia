@@ -1,11 +1,6 @@
 using Avalonia;
-using Avalonia.Controls;
 using System;
-using System.Diagnostics;
 using Avalonia.Input.TextInput;
-using Avalonia.Interactivity;
-using Avalonia.Media;
-using Avalonia.Platform;
 
 namespace AvRichTextBox;
 

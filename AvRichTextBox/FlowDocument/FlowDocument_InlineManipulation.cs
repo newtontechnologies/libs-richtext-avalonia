@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace AvRichTextBox;
 
@@ -57,13 +55,10 @@ public partial class FlowDocument
       }
 
       return allSelectedInlines;
-
    }
 
-   
    internal List<IEditable> CreateNewInlinesForRange(TextRange trange)
    {
-      
       Paragraph? startPar = trange.GetStartPar();
       Paragraph? endPar = trange.GetEndPar();
       if (startPar == null | endPar == null) return [];
@@ -154,45 +149,9 @@ public partial class FlowDocument
       startPar.CallRequestInlinesUpdate();
       endPar.CallRequestInlinesUpdate();
       UpdateBlockAndInlineStarts(Blocks.IndexOf(startPar));
- 
-    
+      
       return allSelectedInlines;
-
    }
-
-   internal int RemoveEmptyParagraphs(int upToParNo)
-   {
-      int removedParCount = 0;
-      for (int idx = Blocks.Count - 1; idx >= upToParNo; idx--)
-      {
-         Paragraph p = (Paragraph)Blocks[idx];
-         if (p.Inlines.Count == 0 || (p.Inlines.Count == 1 && p.Inlines[0].InlineLength == 0))
-         {
-            Blocks.Remove(p);
-            removedParCount++;
-         }
-      }
-      return removedParCount;
-   }
-
-   //internal void RemoveEmptyInlines(List<int> processParIndexes)
-   //{
-   //   List<IEditable> toDeleteRuns = [];
-   //   //for (int idx = 0; idx < processParIndexes.Count; idx ++)
-   //   for (int idx = processParIndexes.Count - 1; idx >=0; idx --)
-   //   {
-   //      Paragraph p = (Paragraph)Blocks[processParIndexes[idx]];
-   //      for (int iedno = p.Inlines.Count - 1; iedno >= 0; iedno -= 1)
-   //         if (p.Inlines[iedno].InlineText == "" && p.Inlines.Count > 1)
-   //            p.Inlines.RemoveAt(iedno);
-
-   //      if (p.Inlines.Count == 0 && p != Blocks[processParIndexes[0]])
-   //         Blocks.Remove(p);
-   //   }
-
-   //   UpdateBlockAndInlineStarts(processParIndexes[0]);
-
-   //}
 
    internal List<IEditable> SplitRunAtPos(int charPos, IEditable inlineToSplit, int splitPos)
    {
@@ -221,12 +180,6 @@ public partial class FlowDocument
       return myindex == Blocks.Count - 1 ? null : (Paragraph)Blocks[myindex + 1];
    }
    
-   internal Paragraph? GetPreviousParagraph(Paragraph par)
-   {
-      int myindex = Blocks.IndexOf(par);
-      return myindex == 0 ? null : (Paragraph)Blocks[myindex - 1];
-   }
-
    internal IEditable? GetNextInline(IEditable inline)
    {
       IEditable returnIed = null!;
@@ -239,35 +192,9 @@ public partial class FlowDocument
          Paragraph? nextPar = GetNextParagraph(inline.MyParagraph);
          if (nextPar == null)
             return null!;
-         else
-            if (nextPar.Inlines.Count > 0)
-               returnIed = nextPar.Inlines[0];
+         if (nextPar.Inlines.Count > 0)
+            returnIed = nextPar.Inlines[0];
       }
       return returnIed;
    }
-
-   internal IEditable GetPreviousInline(IEditable inline) 
-   {
-      IEditable returnIed = null!;
-      int myindex = inline.MyParagraph!.Inlines.IndexOf(inline);
-
-      if (myindex > 0)
-         returnIed = inline.MyParagraph!.Inlines[myindex - 1];
-      else
-      {
-         Paragraph? prevPar = GetPreviousParagraph(inline.MyParagraph);
-         if (prevPar == null)
-            return null!;
-         else
-         {
-            if (prevPar.Inlines.Count > 0)
-               returnIed = prevPar.Inlines.Last();
-         }
-            
-      }
-      return returnIed;
-
-   }
-
-
 }

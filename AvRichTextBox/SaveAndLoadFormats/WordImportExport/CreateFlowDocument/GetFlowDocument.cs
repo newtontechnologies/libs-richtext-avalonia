@@ -1,5 +1,4 @@
 ﻿using Avalonia;
-using Avalonia.Media;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using System;

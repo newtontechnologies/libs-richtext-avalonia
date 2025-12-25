@@ -11,12 +11,8 @@ namespace AvRichTextBox;
 
 public partial class EditableParagraph : SelectableTextBlock
 {
-   public bool IsEditable { get; set; } = true;
-
    private readonly SolidColorBrush _caretBrush = new (Colors.Cyan, 0.55);
 
-   public int RectCharacterIndex = 0;
-   
    public EditableParagraph()
    {
       this.SelectionBrush = _caretBrush;
@@ -26,7 +22,6 @@ public partial class EditableParagraph : SelectableTextBlock
       this.PropertyChanged += EditableParagraph_PropertyChanged;
 
       //this.KeyDown += EditableParagraph_KeyDown;
-
    }
 
    private void EditableParagraph_Loaded(object? sender, RoutedEventArgs e)
@@ -112,7 +107,7 @@ public partial class EditableParagraph : SelectableTextBlock
                this.SetValue(TextLayoutInfoStartRequestedProperty, false);
                if (ThisPar == null)
                   Dispatcher.UIThread.Post(() => UpdateVmFromEpStart(), DispatcherPriority.Background);
-                else
+               else
                   UpdateVmFromEpStart();
                break;
 
@@ -124,16 +119,12 @@ public partial class EditableParagraph : SelectableTextBlock
                   UpdateVmFromEpEnd();
                break;
          }
-
       }
-
    }
 
    protected override void OnPointerPressed(PointerPressedEventArgs e)
    {
       //Prevent default behavior
-
-
    }
 
    protected override void OnKeyDown(KeyEventArgs e)
@@ -185,19 +176,11 @@ public partial class EditableParagraph : SelectableTextBlock
 
       //this.Height = this.Inlines[0].get
 
-
       this.InvalidateMeasure();
       this.InvalidateVisual();
-
    }
-
-   public int SelectionLength => SelectionEnd - SelectionStart;
 
    Paragraph? ThisPar => this.DataContext as Paragraph;
 
-  
    public new string Text => string.Join("", ((Paragraph)this.DataContext!).Inlines.ToList().ConvertAll(edinline => edinline.InlineText));
-
-
 }
-

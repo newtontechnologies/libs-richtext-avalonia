@@ -11,7 +11,6 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
-using DynamicData;
 using System;
 using System.Linq;
 
@@ -24,11 +23,9 @@ public partial class RichTextBox : UserControl
 
    private void ToggleDebuggerPanel (bool visible) { RunDebugPanel.IsVisible = visible; }
 
-  
    public void ScrollToSelection()
    {
       RtbVm.RTBScrollOffset = RtbVm.RTBScrollOffset.WithY(FlowDoc.Selection.StartRect.Y - 50);
-      
    }
 
    public RichTextBox()
@@ -42,11 +39,8 @@ public partial class RichTextBox : UserControl
       RtbVm.FlowDocChanged += RtbVM_FlowDocChanged;
 
       MainDP.DataContext = RtbVm;  // bind to child DockPanel, not the UserControl itself
-          
 
       this.Loaded += RichTextBox_Loaded;
-      this.Initialized += RichTextBox_Initialized;
-
       
       FlowDocSV.SizeChanged += FlowDocSV_SizeChanged;
 
@@ -66,12 +60,6 @@ public partial class RichTextBox : UserControl
 
       this.GotFocus += RichTextBox_GotFocus;
       this.LostFocus += RichTextBox_LostFocus;
-
-   }
-
-   private void RichTextBox_Initialized(object? sender, EventArgs e)
-   {
-
    }
 
    private void RichTextBox_Loaded(object? sender, RoutedEventArgs e)
@@ -94,8 +82,6 @@ public partial class RichTextBox : UserControl
       //FlowDoc.NewDocument();
 
       //CreateClient();
-
-
    }
 
    private void RtbVM_FlowDocChanged()
@@ -185,16 +171,12 @@ public partial class RichTextBox : UserControl
       _preeditText = preeditText;
       //Debug.WriteLine("preditexttext = *" + _preeditText + "*");
       UpdatePreeditOverlay();
-      
    }
 
    internal Point CaretPosition { get; set; }
-   public Point GetCurrentPosition() => CaretPosition;
-
 
    private void UpdatePreeditOverlay()
    {
-
       if (!string.IsNullOrEmpty(_preeditText))
       {
          double cX = _caretRect!.Margin.Left - 2;
@@ -226,7 +208,6 @@ public partial class RichTextBox : UserControl
    };
 
 
-   public void InvalidateCaret() { RtbVm.CaretVisible = true;  }
    public void NewDocument() { FlowDoc.NewDocument(); }
    public void CloseDocument() { FlowDoc.NewDocument();  RtbVm.RTBScrollOffset = new Vector(0, 0);  }
    //Load/save
