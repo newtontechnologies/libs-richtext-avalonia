@@ -9,8 +9,8 @@ namespace AvRichTextBox;
 
 public partial class FlowDocument
 {
-   Dictionary<AvaloniaProperty, FormatRuns> _formatRunsActions = null!;
-   Dictionary<AvaloniaProperty, FormatRun> _formatRunActions = null!;
+   internal Dictionary<AvaloniaProperty, FormatRuns> _formatRunsActions = null!;
+   internal Dictionary<AvaloniaProperty, FormatRun> _formatRunActions = null!;
 
    private void DefineFormatRunActions()
    {
@@ -123,22 +123,6 @@ public partial class FlowDocument
          Selection.ApplyFormatting(Inline.TextDecorationsProperty, TextDecorations.Underline);
    }
 
-
-   internal void ApplyFormattingRange(AvaloniaProperty avProperty, object value, TextRange textRange)
-   {
-      var start = textRange.Start;
-      var end = textRange.End;
-
-      List<IEditable> newInlines = CreateNewInlinesForRange(textRange);
-
-      if (_formatRunsActions.TryGetValue(avProperty, out var runsAction))
-         runsAction(newInlines, value);
-      else
-         throw new NotSupportedException($"Formatting for {avProperty.Name} is not supported.");
-
-      ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(start), GetTextPosFromGlobalIndex(end), newInlines));
-   }
-  
    
    internal void ApplyFormattingInline(FormatRun formatRun, IEditable inlineItem, object value)
    {

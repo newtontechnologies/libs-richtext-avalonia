@@ -32,5 +32,6 @@ public interface IEditable : INotifyPropertyChanged
    public string DisplayInlineText { get; }
    public string InlineToolTip { get; }
    
+   internal int CursorSpanLength { get; }
 }
 

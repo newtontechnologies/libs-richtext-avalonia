@@ -49,7 +49,8 @@ public class EditableLineBreak : LineBreak, IEditable, INotifyPropertyChanged
    }
 
    public string InlineToolTip => "";
-   
+
+   public int CursorSpanLength => 1;
 
 }
 

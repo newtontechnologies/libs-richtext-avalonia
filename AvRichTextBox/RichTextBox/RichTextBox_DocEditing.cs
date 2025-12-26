@@ -6,7 +6,6 @@ namespace AvRichTextBox;
 
 public partial class RichTextBox
 {
-
    private void RichTextBox_TextInput(object? sender, Avalonia.Input.TextInputEventArgs e)
    {
       if (IsReadOnly) return;
@@ -44,9 +43,11 @@ public partial class RichTextBox
    {
       if (IsReadOnly) return;
 
-      FlowDoc.ExecuteEdit(FlowDoc.BuildReplaceRangeAction(FlowDoc.GetTextPosFromGlobalIndex(FlowDoc.Selection.Start), FlowDoc.GetTextPosFromGlobalIndex(FlowDoc.Selection.End), [new EditableRun("\r")]));
+      FlowDoc.ExecuteEdit(FlowDoc.EditBuilder.BuildReplaceRangeAction(
+         FlowDoc.GetTextPosFromGlobalIndex(FlowDoc.Selection.Start),
+         FlowDoc.GetTextPosFromGlobalIndex(FlowDoc.Selection.End),
+         [new EditableRun("\r")]));
       UpdateCurrentParagraphLayout();
-
    }
 
    internal void InsertLineBreak()
@@ -69,9 +70,9 @@ public partial class RichTextBox
       foreach (Match m in matches)
       {
          TextRange trange = new (FlowDoc, m.Index, m.Index + m.Length);
-         FlowDoc.ApplyFormattingRange(Inline.FontStretchProperty, FontStretch.UltraCondensed, trange);
-         FlowDoc.ApplyFormattingRange(Inline.ForegroundProperty, new SolidColorBrush(Colors.BlueViolet), trange);
-         FlowDoc.ApplyFormattingRange(Inline.BackgroundProperty, new SolidColorBrush(Colors.Wheat), trange);
+         FlowDoc.EditBuilder.ApplyFormattingRange(Inline.FontStretchProperty, FontStretch.UltraCondensed, trange);
+         FlowDoc.EditBuilder.ApplyFormattingRange(Inline.ForegroundProperty, new SolidColorBrush(Colors.BlueViolet), trange);
+         FlowDoc.EditBuilder.ApplyFormattingRange(Inline.BackgroundProperty, new SolidColorBrush(Colors.Wheat), trange);
       }
          
 

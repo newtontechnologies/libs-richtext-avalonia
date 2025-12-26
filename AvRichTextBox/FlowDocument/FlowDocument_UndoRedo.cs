@@ -10,7 +10,7 @@ public partial class FlowDocument
    private bool _canCoalesceTyping;
    private TypingCoalesceState? _typing;
 
-   private sealed class TypingCoalesceState
+   internal sealed class TypingCoalesceState
    {
       internal required Paragraph Paragraph;
       internal required EditableRun Run;

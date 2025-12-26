@@ -141,7 +141,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
       //catch (Exception ex) { Debug.WriteLine("exception, length = " + this.Length + " :::start = " + this.Start + " ::: end= " + this.End + " :::"  + ex.Message); }
       if (this.Text == "") return;
 
-      MyFlowDoc.ApplyFormattingRange(avProp, value, this);
+      MyFlowDoc.EditBuilder.ApplyFormattingRange(avProp, value, this);
 
       BiasForwardStart = false;
       BiasForwardEnd = false;

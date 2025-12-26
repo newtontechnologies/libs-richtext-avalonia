@@ -233,7 +233,7 @@ internal static partial class RtfConversions
          }
          else
          {
-            Debug.WriteLine("unkjnown: " + domelm.GetType().ToString());
+            Debug.WriteLine("unknown: " + domelm.GetType());
          }
       }
 

@@ -56,6 +56,7 @@ public class EditableInlineUiContainer : InlineUIContainer, IEditable, INotifyPr
    private bool _isSelected = false;
    public bool IsSelected { get => _isSelected; set { _isSelected = value; this.Child.Opacity = value ? 0.2 : 1; } }
 
+   public int CursorSpanLength => 1;
 }
 
 

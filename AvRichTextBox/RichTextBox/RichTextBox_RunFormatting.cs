@@ -65,7 +65,7 @@ public partial class RichTextBox
             RTFDomDocument dom = new();
             dom.LoadRTFText(rtfstring);
             List<IEditable> insertInlines = RtfConversions.GetInlinesFromRtf(dom);
-            FlowDoc.ExecuteEdit(FlowDoc.BuildReplaceRangeAction(FlowDoc.GetTextPosFromGlobalIndex(FlowDoc.Selection.Start), FlowDoc.GetTextPosFromGlobalIndex(FlowDoc.Selection.End), insertInlines));
+            FlowDoc.ExecuteEdit(FlowDoc.EditBuilder.BuildReplaceRangeAction(FlowDoc.GetTextPosFromGlobalIndex(FlowDoc.Selection.Start), FlowDoc.GetTextPosFromGlobalIndex(FlowDoc.Selection.End), insertInlines));
             newSelPoint = FlowDoc.Selection.Start;
 
             textPasted = true;
@@ -79,7 +79,7 @@ public partial class RichTextBox
          {
             string pasteText = textobj.ToString()!;
             var inlines = new List<IEditable> { new EditableRun(pasteText) };
-            FlowDoc.ExecuteEdit(FlowDoc.BuildReplaceRangeAction(FlowDoc.GetTextPosFromGlobalIndex(FlowDoc.Selection.Start), FlowDoc.GetTextPosFromGlobalIndex(FlowDoc.Selection.End), inlines));
+            FlowDoc.ExecuteEdit(FlowDoc.EditBuilder.BuildReplaceRangeAction(FlowDoc.GetTextPosFromGlobalIndex(FlowDoc.Selection.Start), FlowDoc.GetTextPosFromGlobalIndex(FlowDoc.Selection.End), inlines));
             newSelPoint = FlowDoc.Selection.Start;
 
             textPasted = true;

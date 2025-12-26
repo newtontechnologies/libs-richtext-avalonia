@@ -92,9 +92,11 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       //Selection.StartParagraph.CallRequestTextBoxFocus();
    }
 
+   internal EditBuilder EditBuilder { get; }
+
    public FlowDocument()
    {
-
+      EditBuilder = new(this);
       Selection = new TextRange(this, 0, 0);
       Selection.StartChanged += SelectionStart_Changed;
       Selection.EndChanged += SelectionEnd_Changed;

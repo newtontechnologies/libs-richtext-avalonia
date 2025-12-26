@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace AvRichTextBox;
 
-public class EditableRun : Run, IEditable, INotifyPropertyChanged
+public class EditableRun : Run, IEditable
 {
    public new event PropertyChangedEventHandler? PropertyChanged;
    private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
@@ -77,7 +77,7 @@ public class EditableRun : Run, IEditable, INotifyPropertyChanged
 
    public string InlineToolTip => $"Background: {Background}\nForeground: {Foreground}\nFontFamily: {FontFamily}";
 
-
+   public int CursorSpanLength => InlineText.Length;
 }
 
 

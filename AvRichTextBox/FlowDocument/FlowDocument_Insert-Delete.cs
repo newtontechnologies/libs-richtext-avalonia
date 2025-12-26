@@ -58,7 +58,8 @@ public partial class FlowDocument
          }
 
          // Start a new typing coalescing sequence (must be based on stable references from current state).
-         var typingAction = BuildTypingInsertAction(caret, insertText);
+         var typingAction = EditBuilder.BuildTypingInsertAction(caret, insertText, out var typing);
+         _typing = typing;
          _isTypingEdit = true;
          try
          {
@@ -74,52 +75,12 @@ public partial class FlowDocument
          }
       }
 
-      ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(Selection.Start), GetTextPosFromGlobalIndex(Selection.End), [new EditableRun(insertText)]));
+      var editAction = EditBuilder.BuildReplaceRangeAction(
+         GetTextPosFromGlobalIndex(Selection.Start),
+         GetTextPosFromGlobalIndex(Selection.End),
+         [new EditableRun(insertText)]);
 
-   }
-
-   private EditAction BuildTypingInsertAction(int caret, string text)
-   {
-      var selectionBefore = CaptureSelectionState();
-
-      var p = ResolveStartParagraph(caret);
-      p.UpdateEditableRunPositions();
-
-      int local = Math.Min(caret - p.StartInDoc, p.Text.Length);
-      EditableRun run = p.Inlines.OfType<EditableRun>().LastOrDefault(r => r.TextPositionOfInlineInParagraph <= local) ?? new EditableRun("");
-      int runIndex = p.Inlines.IndexOf(run);
-
-      var edits = new List<IAtomicEdit>(4);
-      if (runIndex < 0)
-      {
-         // Insert the new run at start if none found.
-         edits.Add(new InsertInlineEdit(p, 0, run));
-         runIndex = 0;
-      }
-
-      int off = Math.Clamp(local - run.TextPositionOfInlineInParagraph, 0, run.InlineText.Length);
-      string oldText = run.InlineText;
-      string newText = oldText.Insert(off, text);
-
-      edits.Add(new SetRunTextEdit(run, oldText, newText));
-      edits.Add(new ShiftTextRangesEdit(this, caret, 1));
-
-      int refreshFrom = Blocks.IndexOf(p);
-
-      var selectionAfter = new SelectionState(caret + 1, caret + 1, ExtendMode.ExtendModeNone, BiasForwardStart: false, BiasForwardEnd: false);
-      _typing = new TypingCoalesceState
-      {
-         Paragraph = p,
-         Run = run,
-         RunInsertOffsetStart = off,
-         RunInsertOffsetEnd = off + 1,
-         OldRunText = oldText,
-         SelectionBefore = selectionBefore,
-         RefreshFromBlockIndex = refreshFrom,
-         ShiftPoints = [caret]
-      };
-
-      return new EditAction(edits, selectionBefore, selectionAfter, refreshFrom, [p]);
+      ExecuteEdit(editAction);
    }
 
    private EditAction BuildMergedTypingAction(TypingCoalesceState state)
@@ -150,28 +111,35 @@ public partial class FlowDocument
       if (backspace)
       {
          if (Selection.Start <= 0) return;
-         ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(Selection.Start - 1), GetTextPosFromGlobalIndex(Selection.Start), []));
+         ExecuteEdit(EditBuilder.BuildReplaceRangeAction(
+            GetTextPosFromGlobalIndex(Selection.Start - 1),
+            GetTextPosFromGlobalIndex(Selection.Start),
+            []));
       }
       else
       {
          if (Selection.Start >= DocEndPoint - 1) return;
-         ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(Selection.Start), GetTextPosFromGlobalIndex(Selection.Start + 1), []));
+         ExecuteEdit(EditBuilder.BuildReplaceRangeAction(
+            GetTextPosFromGlobalIndex(Selection.Start),
+            GetTextPosFromGlobalIndex(Selection.Start + 1),
+            []));
       }
-
-
-
    }
 
    internal void InsertLineBreak()
    {
-      ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(Selection.Start), GetTextPosFromGlobalIndex(Selection.End), [new EditableLineBreak()]));
-
+      ExecuteEdit(EditBuilder.BuildReplaceRangeAction(
+         GetTextPosFromGlobalIndex(Selection.Start),
+         GetTextPosFromGlobalIndex(Selection.End),
+         [new EditableLineBreak()]));
    }
-
 
    internal void DeleteSelection()
    {
-      ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(Selection.Start), GetTextPosFromGlobalIndex(Selection.End), []));
+      ExecuteEdit(EditBuilder.BuildReplaceRangeAction(
+         GetTextPosFromGlobalIndex(Selection.Start),
+         GetTextPosFromGlobalIndex(Selection.End),
+         []));
 
    }
 
@@ -369,9 +337,6 @@ public partial class FlowDocument
 #if DEBUG
       UpdateDebuggerSelectionParagraphs();
 #endif
-
-
-
    }
 
    internal void DeleteWord(bool backspace)
@@ -388,7 +353,10 @@ public partial class FlowDocument
          int ws = p.Text.LastIndexOfAny(" \v".ToCharArray(), localCaret);
          int start = p.StartInDoc + (ws < 0 ? 0 : ws + 1);
 
-         ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(start), GetTextPosFromGlobalIndex(caret), []));
+         ExecuteEdit(EditBuilder.BuildReplaceRangeAction(
+            GetTextPosFromGlobalIndex(start),
+            GetTextPosFromGlobalIndex(caret),
+            []));
          return;
       }
 
@@ -400,22 +368,28 @@ public partial class FlowDocument
       // Delete paragraph boundary (merge forward) if caret is at paragraph end.
       if (local >= par.Text.Length)
       {
-         ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(caret), GetTextPosFromGlobalIndex(caret + 1), []));
+         ExecuteEdit(EditBuilder.BuildReplaceRangeAction(
+            GetTextPosFromGlobalIndex(caret),
+            GetTextPosFromGlobalIndex(caret + 1),
+            []));
          return;
       }
 
       IEditable startInline = Selection.GetStartInline();
       if (startInline.IsUiContainer || startInline.IsLineBreak)
       {
-         ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(caret), GetTextPosFromGlobalIndex(caret + 1), []));
+         ExecuteEdit(EditBuilder.BuildReplaceRangeAction(
+            GetTextPosFromGlobalIndex(caret),
+            GetTextPosFromGlobalIndex(caret + 1),
+            []));
          return;
       }
 
       int nextSpace = par.Text.IndexOf(' ', local);
       int end = nextSpace < 0 ? (par.StartInDoc + par.Text.Length) : (par.StartInDoc + nextSpace + 1);
-      ExecuteEdit(BuildReplaceRangeAction(GetTextPosFromGlobalIndex(caret), GetTextPosFromGlobalIndex(end), []));
-
+      ExecuteEdit(EditBuilder.BuildReplaceRangeAction(
+         GetTextPosFromGlobalIndex(caret),
+         GetTextPosFromGlobalIndex(end),
+         []));
    }
-
-
 }

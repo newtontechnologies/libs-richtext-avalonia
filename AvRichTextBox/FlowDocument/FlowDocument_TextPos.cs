@@ -27,7 +27,7 @@ public partial class FlowDocument
 
          foreach (var il in p.Inlines)
          {
-            int span = CursorSpanLength(il);
+            int span = il.CursorSpanLength;
             if (idx < cursor + span)
                return new TextPos(il, idx - cursor);
 
@@ -51,7 +51,7 @@ public partial class FlowDocument
                return new TextPos(next.Inlines[0], 0);
             // End of document: clamp to "after last inline"
             var last = p.Inlines[^1];
-            return new TextPos(last, CursorSpanLength(last));
+            return new TextPos(last, last.CursorSpanLength);
          }
 
          cursor += 1;
@@ -60,7 +60,7 @@ public partial class FlowDocument
       // Beyond end: clamp to end of last paragraph
       var lastPar = Blocks.OfType<Paragraph>().Last();
       var lastInline = lastPar.Inlines[^1];
-      return new TextPos(lastInline, CursorSpanLength(lastInline));
+      return new TextPos(lastInline, lastInline.CursorSpanLength);
    }
 
    internal int GetGlobalIndexFromTextPos(TextPos pos)
@@ -73,7 +73,7 @@ public partial class FlowDocument
 
          foreach (var il in p.Inlines)
          {
-            int span = CursorSpanLength(il);
+            int span = il.CursorSpanLength;
             if (ReferenceEquals(il, pos.Inline))
                return cursor + Math.Clamp(pos.CharIndex, 0, span);
 
@@ -84,13 +84,6 @@ public partial class FlowDocument
       }
 
       throw new InvalidOperationException("TextPos.Inline is not part of the document.");
-   }
-
-   private static int CursorSpanLength(IEditable inline)
-   {
-      if (inline is EditableRun r)
-         return r.InlineText.Length;
-      return 1;
    }
 }
 
